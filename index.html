@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forja System — Sistemas, sites e automações para o seu negócio</title>
+<meta name="description" content="A Forja System projeta e constrói o que roda por trás do seu negócio: sistemas internos, sites que convertem e automações com IA. Sob medida, para qualquer nicho.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0%25' stop-color='%237A1B02'/%3E%3Cstop offset='45%25' stop-color='%23FF5A1F'/%3E%3Cstop offset='80%25' stop-color='%23FFB35C'/%3E%3Cstop offset='100%25' stop-color='%23FFF3E0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='18' fill='%23060504'/%3E%3Ctext x='11' y='75' font-family='Arial,sans-serif' font-weight='900' font-size='72' fill='url(%23g)'%3EFS%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="fireGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#7A1B02"/>
+      <stop offset="45%" stop-color="#FF5A1F"/>
+      <stop offset="80%" stop-color="#FFB35C"/>
+      <stop offset="100%" stop-color="#FFF3E0"/>
+    </linearGradient>
+    <filter id="fireGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+</svg>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="cursor-glow" aria-hidden="true"></div>
+
+<canvas id="embers" aria-hidden="true"></canvas>
+
+<div class="progress-ring" aria-hidden="true">
+  <svg viewBox="0 0 100 100">
+    <circle class="progress-ring__track" cx="50" cy="50" r="44"/>
+    <circle class="progress-ring__fill" cx="50" cy="50" r="44"/>
+  </svg>
+</div>
+
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="site-header">
+  <a href="#topo" class="brand" aria-label="Forja System — início">
+    <svg class="brand__mark" viewBox="0 0 100 100" aria-hidden="true">
+      <text x="10" y="76" font-family="'Big Shoulders Display'" font-weight="900" font-size="82" fill="url(#fireGrad)" filter="url(#fireGlow)">FS</text>
+    </svg>
+  </a>
+
+  <nav class="site-nav" aria-label="Navegação principal">
+    <a href="#servicos">Serviços</a>
+    <a href="#projetos">Projetos</a>
+    <a href="#metodo">Método</a>
+    <a href="#contato">Contato</a>
+  </nav>
+
+  <a href="#contato" class="btn btn--ghost btn--small header-cta">Diagnóstico gratuito</a>
+
+  <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-nav">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav id="mobile-nav" class="mobile-nav" aria-label="Navegação móvel">
+  <a href="#servicos">Serviços</a>
+  <a href="#projetos">Projetos</a>
+  <a href="#metodo">Método</a>
+  <a href="#contato">Contato</a>
+</nav>
+
+<main id="conteudo">
+
+  <!-- HERO -->
+  <section class="hero" id="topo">
+    <div class="hero__inner">
+      <p class="eyebrow" data-split>Sistemas · Sites · Automações</p>
+
+      <h1 class="hero__title">
+        <span class="hero__title-line" data-split>Pare de</span>
+        <span class="hero__title-line hero__title-line--ember" data-split>depender só</span>
+        <span class="hero__title-line" data-split>de você.</span>
+      </h1>
+
+      <p class="hero__sub" data-reveal>
+        Sistemas, sites e automações que a Forja projeta e constrói — para o seu
+        negócio rodar sozinho, todos os dias.
+      </p>
+
+      <div class="hero__actions" data-reveal>
+        <a href="#projetos" class="btn btn--primary" data-magnetic>Ver projetos reais</a>
+        <a href="#contato" class="btn btn--ghost" data-magnetic>Pedir diagnóstico gratuito</a>
+      </div>
+    </div>
+
+    <div class="hero__ticker" data-reveal>
+      <span class="hero__ticker-label">Em produção agora</span>
+      <div class="marquee">
+        <div class="marquee__track">
+          <span>Central de Atendimento · 3 marcas</span>
+          <span>Portal do Colaborador</span>
+          <span>Assistente de IA com RAG</span>
+          <span>Sites institucionais com GSAP</span>
+          <span>Central de Atendimento · 3 marcas</span>
+          <span>Portal do Colaborador</span>
+          <span>Assistente de IA com RAG</span>
+          <span>Sites institucionais com GSAP</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="scroll-cue" data-scroll-cue aria-hidden="true" tabindex="-1">
+      <span>role</span>
+      <svg viewBox="0 0 24 24"><path d="M12 4v16M6 14l6 6 6-6"/></svg>
+    </button>
+  </section>
+
+  <!-- MANIFESTO — texto "aceso" pelo scroll -->
+  <section class="manifesto">
+    <div class="manifesto__inner">
+      <p class="eyebrow" data-reveal>Nossa visão</p>
+      <p class="manifesto__forge" data-forge-text>Site bonito sem sistema por trás é vitrine vazia. Trabalhamos nichos diferentes — saúde, imobiliário, indústria, serviços — mas o padrão se repete: o negócio precisa de mais do que uma página institucional. Precisa de um motor rodando por trás dela: cadastro automático, atendimento que não depende de alguém estar online, aprovação que não trava em grupo de WhatsApp. É isso que forjamos primeiro. O site vem depois — como a porta de entrada desse motor.</p>
+    </div>
+  </section>
+
+  <!-- SERVIÇOS -->
+  <section class="servicos" id="servicos">
+    <div class="section-head">
+      <p class="eyebrow" data-reveal>O que construímos</p>
+      <h2 data-reveal-lines>Três frentes, um único<br>time cuidando de tudo.</h2>
+    </div>
+
+    <div class="servicos__grid">
+      <article class="servico-card" data-tilt data-reveal>
+        <span class="servico-card__tag">SIS</span>
+        <h3>Sistemas</h3>
+        <p>Portais, dashboards e ferramentas internas sob medida — controle de acesso
+        por perfil, aprovações, relatórios automáticos. Pensados pra sua operação,
+        não adaptados de um modelo genérico.</p>
+      </article>
+
+      <article class="servico-card" data-tilt data-reveal>
+        <span class="servico-card__tag">WEB</span>
+        <h3>Sites</h3>
+        <p>Sites institucionais e comerciais com identidade própria, rápidos e
+        prontos pra campanha — construídos para converter tráfego pago, não só
+        para existir.</p>
+      </article>
+
+      <article class="servico-card" data-tilt data-reveal>
+        <span class="servico-card__tag">AUT</span>
+        <h3>Automações</h3>
+        <p>Atendimento com IA, respostas automáticas, fluxos que rodam 24 horas
+        por dia — mesmo quando ninguém da equipe está de plantão.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- PROJETOS — trilho horizontal (desktop) -->
+  <section class="projetos" id="projetos">
+    <div class="section-head">
+      <p class="eyebrow" data-reveal>Projetos reais, em produção</p>
+      <h2 data-reveal-lines>Não é mockup.<br>É o que já está no ar.</h2>
+      <p class="projetos__hint" data-reveal><span class="hint-desktop">Role pra ver os quatro projetos →</span><span class="hint-mobile">Arraste pra ver os quatro projetos →</span></p>
+    </div>
+
+    <div class="projetos__pin" data-horizontal-wrap>
+      <div class="projetos__track" data-horizontal-track>
+
+        <!-- CASO 01 -->
+        <article class="caso" data-panel>
+          <div class="caso__info">
+            <span class="caso__tag">CASO_01 / 04</span>
+            <h3>Central de Atendimento multi-marca</h3>
+            <p>Um único sistema de central de atendimento (SAC), construído uma vez e
+            implantado para as três marcas do Grupo Biodinâmica — Biodinâmica, Injecta
+            e Oraltech. Cada empresa com sua própria identidade visual, seus próprios
+            setores e fila de tickets, rodando sobre a mesma base de código.</p>
+            <ul class="caso__tags">
+              <li>Next.js</li><li>Supabase</li><li>Multi-tenant</li>
+            </ul>
+          </div>
+          <div class="caso__gallery">
+            <div class="browser-frame browser-frame--wide">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/sac-biodinamica-tickets.png" alt="Painel de tickets da Central de Atendimento, versão Biodinâmica" loading="lazy">
+            </div>
+            <div class="browser-frame">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/sac-injecta-login.png" alt="Tela de login da Central de Atendimento, versão Injecta" loading="lazy">
+            </div>
+            <div class="browser-frame">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/sac-oraltech-painel.png" alt="Painel geral da Central de Atendimento, versão Oraltech" loading="lazy">
+            </div>
+          </div>
+        </article>
+
+        <!-- CASO 02 -->
+        <article class="caso" data-panel>
+          <div class="caso__info">
+            <span class="caso__tag">CASO_02 / 04</span>
+            <h3>Portal do Colaborador</h3>
+            <p>Portal interno com dashboards por perfil — colaborador, gestor, RH e
+            administrador. Aprovação de ocorrências em tempo real, relatórios em PDF
+            gerados automaticamente, criação em massa de acessos. O que antes rodava
+            em planilha e e-mail agora tem fila, histórico e dono.</p>
+            <ul class="caso__tags">
+              <li>React</li><li>Supabase</li><li>Docker</li>
+            </ul>
+          </div>
+          <div class="caso__gallery caso__gallery--single">
+            <div class="browser-frame browser-frame--wide">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/portal-colaborador-dashboard.png" alt="Dashboard do gestor no Portal do Colaborador, Grupo Biodinâmica" loading="lazy">
+            </div>
+          </div>
+        </article>
+
+        <!-- CASO 03 -->
+        <article class="caso" data-panel>
+          <div class="caso__info">
+            <span class="caso__tag">CASO_03 / 04</span>
+            <h3>Assistente virtual com IA</h3>
+            <p>Chatbot institucional com IA generativa e busca semântica na base de
+            conhecimento da empresa. Responde dúvidas de produto 24 horas por dia e
+            escala para um atendente humano quando precisa — sem visitante nenhum
+            esperando resposta.</p>
+            <ul class="caso__tags">
+              <li>Next.js</li><li>n8n</li><li>RAG</li><li>GPT-4.1-mini</li>
+            </ul>
+          </div>
+          <div class="caso__gallery caso__gallery--single">
+            <div class="browser-frame browser-frame--wide">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/bioplic-chatbot.png" alt="Assistente virtual com IA integrado ao site institucional" loading="lazy">
+            </div>
+          </div>
+        </article>
+
+        <!-- CASO 04 -->
+        <article class="caso" data-panel>
+          <div class="caso__info">
+            <span class="caso__tag">CASO_04 / 04</span>
+            <h3>Prestige Real Estate</h3>
+            <p>Projeto autoral para o nicho imobiliário de alto padrão: hero com
+            slider automático, contadores animados, depoimentos em marquee infinito
+            e todo o conteúdo centralizado num único arquivo editável — para
+            qualquer corretora assumir o site sem depender de programador para
+            trocar um texto.</p>
+            <ul class="caso__tags">
+              <li>React</li><li>Framer Motion</li><li>Vite</li>
+            </ul>
+          </div>
+          <div class="caso__gallery caso__gallery--single">
+            <div class="browser-frame browser-frame--wide">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/prestige-hero.png" alt="Página inicial do site Prestige Real Estate" loading="lazy">
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MÉTODO -->
+  <section class="metodo" id="metodo">
+    <div class="section-head">
+      <p class="eyebrow" data-reveal>Como trabalhamos</p>
+      <h2 data-reveal-lines>Quatro etapas.<br>Nenhuma pulada.</h2>
+    </div>
+
+    <div class="metodo__wrap">
+      <div class="metodo__bar" data-metodo-bar></div>
+      <ol class="metodo__list">
+        <li data-metodo-node>
+          <span class="metodo__num">01</span>
+          <h3>Diagnóstico</h3>
+          <p>Entendemos onde o negócio trava: processo manual, atendimento lento,
+          site que não converte.</p>
+        </li>
+        <li data-metodo-node>
+          <span class="metodo__num">02</span>
+          <h3>Arquitetura</h3>
+          <p>Desenhamos o sistema antes de desenhar a tela: estrutura de dados,
+          papéis de acesso, fluxo de automação.</p>
+        </li>
+        <li data-metodo-node>
+          <span class="metodo__num">03</span>
+          <h3>Construção</h3>
+          <p>Sistema, site e automação sobem juntos, testados com dados reais
+          do seu negócio.</p>
+        </li>
+        <li data-metodo-node>
+          <span class="metodo__num">04</span>
+          <h3>Operação</h3>
+          <p>Acompanhamento depois do lançamento. O sistema evolui junto com
+          a empresa.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- CTA FINAL -->
+  <section class="cta-final" id="contato">
+    <div class="cta-final__inner">
+      <p class="eyebrow" data-reveal>Pronto pra sair da planilha?</p>
+      <h2 data-reveal-lines>Vamos ver se sua operação<br>precisa de um sistema,<br>um site, ou dos dois.</h2>
+      <p class="cta-final__sub" data-reveal>
+        Conversa de 20 minutos, sem compromisso. Se não fizer sentido pro seu
+        negócio, a gente fala isso também.
+      </p>
+
+      <div class="cta-final__actions" data-reveal>
+        <a href="https://wa.me/5543991327878?text=Ol%C3%A1%2C%20vim%20do%20site%20da%20Forja%20e%20quero%20um%20diagn%C3%B3stico%20gratuito." class="btn btn--primary btn--large" data-magnetic target="_blank" rel="noopener">
+          Falar no WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__top">
+    <a href="#topo" class="brand" aria-label="Forja System — início">
+      <svg class="brand__mark" viewBox="0 0 100 100" aria-hidden="true">
+        <text x="10" y="76" font-family="'Big Shoulders Display'" font-weight="900" font-size="82" fill="url(#fireGrad)" filter="url(#fireGlow)">FS</text>
+      </svg>
+    </a>
+    <nav class="site-footer__nav" aria-label="Navegação do rodapé">
+      <a href="#servicos">Serviços</a>
+      <a href="#projetos">Projetos</a>
+      <a href="#metodo">Método</a>
+      <a href="#contato">Contato</a>
+    </nav>
+  </div>
+  <div class="site-footer__bottom">
+    <span>© 2026 Forja System. Sistemas, sites e automações.</span>
+    <span class="site-footer__contacts">
+      <a href="https://wa.me/5543999524682">43 99952-4682</a>
+      <a href="https://wa.me/5543991327878">43 99132-7878</a>
+      <a href="mailto:andremilani992@gmail.com">andremilani992@gmail.com</a>
+    </span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
