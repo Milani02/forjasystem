@@ -8,7 +8,9 @@
   --ink: #F6F1EA;
   --ink-dim: #C7BEB2;
   --muted: #7A7268;
+  --ember-deep: #4A1000;
   --ember: #FF5A1F;
+  --ember-mid: #FF8A3D;
   --ember-bright: #FFB35C;
   --ember-white: #FFE8CF;
   --spark: #8FE3FF;
@@ -16,8 +18,8 @@
   --line-bright: rgba(246,241,234,0.20);
 
   --font-display: 'Big Shoulders Display', sans-serif;
-  --font-body: 'Space Grotesk', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
 
   --container: 1240px;
   --gutter: clamp(1.25rem, 4vw, 3rem);
@@ -135,7 +137,7 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   backdrop-filter: blur(6px);
 }
 .brand{ display: flex; align-items: center; gap: .5rem; margin-right: auto; color: var(--ink); }
-.brand__mark{ width: 42px; height: 42px; flex-shrink: 0; overflow: visible; }
+.brand__mark{ width: 58px; height: 58px; flex-shrink: 0; display: block; object-fit: contain; }
 .brand__word{
   font-family: var(--font-display);
   font-weight: 700;
@@ -240,7 +242,7 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 }
 .hero__title-line{ display: block; overflow: hidden; }
 .hero__title-line--ember .line-inner{
-  background: linear-gradient(100deg, var(--ember) 10%, var(--ember-bright) 45%, var(--ember-white) 60%, var(--ember) 90%);
+  background: linear-gradient(100deg, var(--ember) 10%, var(--ember-mid) 35%, var(--ember-bright) 50%, var(--ember-white) 62%, var(--ember) 90%);
   background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -422,7 +424,7 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .metodo__bar::after{
   content: '';
   position: absolute; inset: 0;
-  background: linear-gradient(90deg, var(--ember), var(--ember-bright));
+  background: linear-gradient(90deg, var(--ember), var(--ember-mid), var(--ember-bright));
   transform: scaleX(0);
   transform-origin: left;
   box-shadow: 0 0 12px rgba(255,90,31,.7);
@@ -491,7 +493,7 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   .site-nav, .header-cta{ display: none; }
   .nav-toggle{ display: flex; }
 
-  .servicos__grid{ grid-template-columns: 1fr; }
+  .servicos__grid{ grid-template-columns: repeat(2, 1fr); }
   .metodo__list{ grid-template-columns: repeat(2, 1fr); row-gap: 3rem; }
 
   .hint-desktop{ display: none; }
@@ -511,7 +513,9 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 
 @media (max-width: 620px){
   .hero{ padding-top: 6.5rem; }
+  .hero__title{ font-size: clamp(2.5rem, 13vw, 3.6rem); }
   .hero__ticker{ flex-direction: column; align-items: flex-start; gap: .75rem; }
+  .servicos__grid{ grid-template-columns: 1fr; }
   .metodo__list{ grid-template-columns: 1fr; }
   .caso__gallery{ grid-template-columns: 1fr; }
   .browser-frame{ grid-column: 1 / -1 !important; }
