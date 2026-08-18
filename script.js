@@ -85,6 +85,31 @@
   })();
 
   /* ============================================================
+     Circuito de fundo — pulsos de brasa viajando pelas linhas
+     (a dualidade "Forja" + "System" do nome, sempre no ar)
+  ============================================================ */
+  (function circuitPulses() {
+    const paths = gsap.utils.toArray('[data-circuit-pulse]');
+    if (!paths.length) return;
+    if (reduceMotion) return;
+
+    paths.forEach((path, i) => {
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = `70 ${len}`;
+      gsap.fromTo(path,
+        { strokeDashoffset: 70 },
+        {
+          strokeDashoffset: -len,
+          duration: len / 190,
+          repeat: -1,
+          ease: 'none',
+          delay: i * 0.9,
+        }
+      );
+    });
+  })();
+
+  /* ============================================================
      Custom cursor glow
   ============================================================ */
   if (!reduceMotion && !isCoarsePointer) {
@@ -137,6 +162,58 @@
     });
   }
 
+  /* ============================================================
+     Spotlight de cursor nos cards de serviço e depoimento
+  ============================================================ */
+  if (!reduceMotion && !isCoarsePointer) {
+    document.querySelectorAll('.servico-card, .depoimento-card').forEach((card) => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+      });
+    });
+  }
+
+  /* ============================================================
+     WhatsApp FAB — entrada tipo mola ao rolar
+  ============================================================ */
+  (function whatsappFab() {
+    const fab = document.querySelector('.whatsapp-fab');
+    if (!fab || reduceMotion) return;
+    ScrollTrigger.create({
+      trigger: '.problema',
+      start: 'top 80%',
+      once: true,
+      onEnter: () => {
+        gsap.to(fab, { opacity: 1, scale: 1, y: 0, duration: 0.9, ease: 'back.out(1.7)' });
+      },
+    });
+  })();
+
+  /* ============================================================
+     Contagem animada — seção de números
+  ============================================================ */
+  (function statCounters() {
+    gsap.utils.toArray('.stat__num').forEach((el) => {
+      const target = parseFloat(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      if (reduceMotion) { el.textContent = target + suffix; return; }
+      const counter = { val: 0 };
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 85%',
+        once: true,
+        onEnter: () => {
+          gsap.to(counter, {
+            val: target, duration: 1.6, ease: 'power2.out',
+            onUpdate: () => { el.textContent = Math.round(counter.val) + suffix; },
+          });
+        },
+      });
+    });
+  })();
+
   /* ------------------------------------------------------------
      Split hero title lines + eyebrow for reveal
   ------------------------------------------------------------ */
@@ -166,6 +243,7 @@
   gsap.set('.hero__sub, .hero__actions, .hero__ticker', { opacity: 0, y: 24 });
   gsap.set('.scroll-cue', { opacity: 0 });
   gsap.set('.site-header', { opacity: 0, y: -12 });
+  if (!reduceMotion) gsap.set('.whatsapp-fab', { opacity: 0, scale: 0.4, y: 40 });
 
   /* ------------------------------------------------------------
      Intro timeline
@@ -184,8 +262,8 @@
   gsap.utils.toArray('[data-reveal]').forEach((el) => {
     if (el.closest('.hero')) return;
     gsap.fromTo(el,
-      { opacity: 0, y: 32 },
-      { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }
+      { opacity: 0, y: 46, scale: 0.97 },
+      { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'back.out(1.4)', scrollTrigger: { trigger: el, start: 'top 85%' } }
     );
   });
 
@@ -228,31 +306,115 @@
   })();
 
   /* ------------------------------------------------------------
-     Método — scrub progress bar + node lighting
+     Problema — itens de dor entram em cascata, marca "✕" gira
   ------------------------------------------------------------ */
-  (function metodoBar() {
-    const bar = document.querySelector('[data-metodo-bar]');
-    const nodes = gsap.utils.toArray('[data-metodo-node]');
-    if (!bar || !nodes.length) return;
-    bar.classList.add('is-filled');
+  gsap.utils.toArray('.pain-item').forEach((item, i) => {
+    const mark = item.querySelector('.pain-item__mark');
+    gsap.fromTo(item,
+      { opacity: 0, x: -36 },
+      {
+        opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', delay: i * 0.06,
+        scrollTrigger: { trigger: item, start: 'top 88%' },
+      }
+    );
+    if (mark) {
+      gsap.fromTo(mark,
+        { rotate: -160, scale: 0.3, opacity: 0 },
+        {
+          rotate: 0, scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(2.2)', delay: i * 0.06 + 0.08,
+          scrollTrigger: { trigger: item, start: 'top 88%' },
+        }
+      );
+    }
+  });
 
-    ScrollTrigger.create({
-      trigger: '.metodo__wrap',
-      start: 'top 70%',
-      end: 'bottom 60%',
-      scrub: 0.5,
-      onUpdate: (self) => {
-        bar.style.setProperty('--fill', self.progress);
-        const litCount = Math.floor(self.progress * nodes.length + 0.15);
-        nodes.forEach((n, i) => n.classList.toggle('is-lit', i < litCount));
-      },
-    });
+  /* ------------------------------------------------------------
+     Manifesto — palavra-âncora revelada com wipe
+  ------------------------------------------------------------ */
+  (function manifestoWordWipe() {
+    const word = document.querySelector('.manifesto__word');
+    if (!word) return;
+    gsap.fromTo(word,
+      { clipPath: 'inset(0 0 100% 0)', opacity: 0 },
+      {
+        clipPath: 'inset(0 0 0% 0)', opacity: 1, duration: 1, ease: 'power4.out',
+        scrollTrigger: { trigger: word, start: 'top 85%' },
+      }
+    );
   })();
 
   /* ------------------------------------------------------------
-     Projetos — horizontal scroll rig (desktop only)
+     Números — cada bloco "salta" pra dentro
   ------------------------------------------------------------ */
+  gsap.utils.toArray('.stat').forEach((stat, i) => {
+    gsap.fromTo(stat,
+      { opacity: 0, scale: 0.8, y: 24 },
+      {
+        opacity: 1, scale: 1, y: 0, duration: 0.8, delay: i * 0.1, ease: 'back.out(1.6)',
+        scrollTrigger: { trigger: '.stats__grid', start: 'top 85%' },
+      }
+    );
+  });
+
+  /* ------------------------------------------------------------
+     Tira de confiança — bento entra por direções diferentes
+  ------------------------------------------------------------ */
+  gsap.utils.toArray('.trust-card').forEach((card, i) => {
+    const fromX = i === 0 ? -60 : 60;
+    gsap.fromTo(card,
+      { opacity: 0, x: fromX, rotate: i === 0 ? -2 : 2 },
+      {
+        opacity: 1, x: 0, rotate: 0, duration: 0.9, delay: i * 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.trust-strip__grid', start: 'top 82%' },
+      }
+    );
+  });
+
+  /* ------------------------------------------------------------
+     Depoimentos — card cresce, aspas aparecem primeiro
+  ------------------------------------------------------------ */
+  gsap.utils.toArray('.depoimento-card').forEach((card, i) => {
+    const mark = card.querySelector('.depoimento-card__mark');
+    gsap.fromTo(card,
+      { opacity: 0, scale: 0.88, y: 30 },
+      {
+        opacity: 1, scale: 1, y: 0, duration: 0.75, delay: i * 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.depoimentos__grid', start: 'top 82%' },
+      }
+    );
+    if (mark) {
+      gsap.fromTo(mark,
+        { scale: 0, opacity: 0 },
+        {
+          scale: 1, opacity: 0.6, duration: 0.5, delay: i * 0.1 + 0.15, ease: 'back.out(2)',
+          scrollTrigger: { trigger: '.depoimentos__grid', start: 'top 82%' },
+        }
+      );
+    }
+  });
+
+  /* ------------------------------------------------------------
+     CTA final — mockup de chat entra deslizando e girando
+  ------------------------------------------------------------ */
+  (function ctaChatMockReveal() {
+    const mock = document.querySelector('.chat-mock');
+    if (!mock) return;
+    gsap.fromTo(mock,
+      { opacity: 0, x: 60, rotate: 4, scale: 0.94 },
+      {
+        opacity: 1, x: 0, rotate: 0, scale: 1, duration: 0.9, ease: 'power3.out',
+        scrollTrigger: { trigger: mock, start: 'top 85%' },
+      }
+    );
+  })();
+
   const mm = gsap.matchMedia();
+
+  /* ------------------------------------------------------------
+     Projetos — horizontal scroll rig (desktop only)
+     Precisa ser criado ANTES do pin da story: seu spacer precisa
+     já existir no documento para a story medir sua posição real.
+  ------------------------------------------------------------ */
   mm.add('(min-width: 901px)', () => {
     const wrap = document.querySelector('[data-horizontal-wrap]');
     const track = document.querySelector('[data-horizontal-track]');
@@ -295,13 +457,99 @@
   });
 
   /* ------------------------------------------------------------
+     Método — scrolling story pinado: martelo bate na bigorna,
+     fagulhas espalham a cada capítulo
+  ------------------------------------------------------------ */
+  mm.add('(min-width: 901px)', () => {
+    const pin = document.querySelector('[data-story-pin]');
+    const panels = gsap.utils.toArray('[data-story-panel]');
+    const hammer = document.querySelector('[data-story-hammer]');
+    const flash = document.querySelector('[data-story-flash]');
+    const sparks = gsap.utils.toArray('[data-story-sparks] .story__spark');
+    const visual = document.querySelector('.story__visual');
+    if (!pin || !panels.length) return () => {};
+
+    const STRIKE_X = 100;
+    const STRIKE_Y = 78;
+    const RAISED_ROT = -38;
+
+    if (hammer) gsap.set(hammer, { rotation: RAISED_ROT, transformOrigin: '0px 0px' });
+
+    function setHeat(stage) {
+      if (!visual) return;
+      visual.classList.remove('story--heat-1', 'story--heat-2', 'story--heat-3', 'story--heat-4');
+      if (stage > 0) visual.classList.add(`story--heat-${stage}`);
+    }
+
+    function strike(heatStage) {
+      if (reduceMotion) return;
+      setHeat(heatStage);
+      if (hammer) {
+        gsap.timeline()
+          .to(hammer, { rotation: 6, duration: 0.16, ease: 'power2.in' })
+          .to(hammer, { rotation: RAISED_ROT, duration: 0.55, ease: 'elastic.out(1, 0.5)' }, 0.16);
+      }
+      if (flash) {
+        gsap.fromTo(flash, { attr: { r: 2 }, opacity: 0.9 }, { attr: { r: 26 }, opacity: 0, duration: 0.4, ease: 'power2.out' });
+      }
+      sparks.forEach((spark) => {
+        const angle = Math.PI + Math.random() * Math.PI; // upper half, spread wide
+        const dist = 24 + Math.random() * 46;
+        const dx = Math.cos(angle) * dist;
+        const dy = Math.sin(angle) * dist * 0.7;
+        gsap.fromTo(spark,
+          { attr: { cx: STRIKE_X, cy: STRIKE_Y, r: 2 + Math.random() * 1.5 }, opacity: 1 },
+          {
+            attr: { cx: STRIKE_X + dx, cy: STRIKE_Y + dy + 10 },
+            opacity: 0,
+            duration: 0.5 + Math.random() * 0.3,
+            ease: 'power2.out',
+          }
+        );
+      });
+    }
+
+    if (reduceMotion) {
+      panels.forEach((p) => gsap.set(p, { opacity: 1, position: 'relative' }));
+      return () => {};
+    }
+
+    gsap.set(panels.slice(1), { opacity: 0 });
+    let activeIndex = 0;
+
+    const st = ScrollTrigger.create({
+      trigger: pin,
+      start: 'top top',
+      end: () => `+=${window.innerHeight * 2.6}`,
+      pin: true,
+      scrub: 0.6,
+      invalidateOnRefresh: true,
+      onEnter: () => strike(1),
+      onUpdate: (self) => {
+        const progress = self.progress;
+        const segment = 1 / panels.length;
+        const idx = Math.min(panels.length - 1, Math.floor(progress / segment));
+        if (idx !== activeIndex) {
+          activeIndex = idx;
+          panels.forEach((p, i) => {
+            gsap.to(p, { opacity: i === activeIndex ? 1 : 0, duration: 0.4, overwrite: 'auto' });
+          });
+          strike(activeIndex + 1);
+        }
+      },
+    });
+
+    return () => st.kill();
+  });
+
+  /* ------------------------------------------------------------
      Servico cards stagger-in
   ------------------------------------------------------------ */
   gsap.utils.toArray('.servico-card').forEach((card, i) => {
     gsap.fromTo(card,
-      { opacity: 0, y: 40, rotateX: -8 },
+      { opacity: 0, y: 52, scale: 0.9, rotateX: -14 },
       {
-        opacity: 1, y: 0, rotateX: 0, duration: 0.8, delay: i * 0.08, ease: 'power3.out',
+        opacity: 1, y: 0, scale: 1, rotateX: 0, duration: 0.85, delay: i * 0.1, ease: 'back.out(1.5)',
         scrollTrigger: { trigger: '.servicos__grid', start: 'top 82%' },
       }
     );
@@ -345,17 +593,37 @@
   ------------------------------------------------------------ */
   const navToggle = document.querySelector('.nav-toggle');
   const mobileNav = document.querySelector('.mobile-nav');
+  const fabEl = document.querySelector('.whatsapp-fab');
   navToggle?.addEventListener('click', () => {
     const isOpen = mobileNav.classList.toggle('is-open');
     navToggle.setAttribute('aria-expanded', String(isOpen));
     navToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
     document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (fabEl) fabEl.style.visibility = isOpen ? 'hidden' : '';
   });
   mobileNav?.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', () => {
       mobileNav.classList.remove('is-open');
       navToggle.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
+      if (fabEl) fabEl.style.visibility = '';
+    });
+  });
+
+  /* ------------------------------------------------------------
+     Rastreamento de clique no WhatsApp (evento de conversão)
+  ------------------------------------------------------------ */
+  document.querySelectorAll('a[href*="wa.me"]').forEach((a) => {
+    a.addEventListener('click', () => {
+      if (typeof gtag === 'function') {
+        gtag('event', 'contato_whatsapp', {
+          event_category: 'engagement',
+          event_label: a.closest('section')?.id || a.className || 'whatsapp',
+        });
+      }
+      if (typeof fbq === 'function') {
+        fbq('track', 'Contact');
+      }
     });
   });
 
@@ -372,4 +640,15 @@
       target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     });
   });
+
+  /* ------------------------------------------------------------
+     Recalcula todas as posições dos ScrollTrigger depois que
+     fontes e imagens terminam de carregar (evita desalinhar os
+     pins quando o layout muda de tamanho após o cálculo inicial)
+  ------------------------------------------------------------ */
+  const refreshScrollTrigger = () => ScrollTrigger.refresh();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(refreshScrollTrigger);
+  }
+  window.addEventListener('load', refreshScrollTrigger);
 })();
