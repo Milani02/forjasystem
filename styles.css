@@ -178,12 +178,12 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
    ============================================================ */
 .site-header{
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  display: flex; align-items: center; gap: 2rem;
+  display: flex; align-items: center; justify-content: center; gap: 2rem;
   padding: 1.1rem var(--gutter);
   background: linear-gradient(to bottom, rgba(6,5,4,.9), transparent);
   backdrop-filter: blur(6px);
 }
-.brand{ display: flex; align-items: center; gap: .5rem; margin-right: auto; color: var(--ink); }
+.brand{ display: flex; align-items: center; gap: .5rem; color: var(--ink); }
 .brand__mark{ width: 58px; height: 58px; flex-shrink: 0; display: block; object-fit: contain; }
 .brand__word{
   font-family: var(--font-display);
@@ -205,7 +205,8 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 }
 .site-nav{ display: flex; gap: 2rem; }
 .site-nav a{
-  font-family: var(--font-mono); font-size: .78rem; letter-spacing: .04em;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
+  font-size: 1rem; letter-spacing: .01em;
   color: var(--ink-dim); position: relative; padding-bottom: 2px;
 }
 .site-nav a::after{
@@ -300,6 +301,69 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 }
 .hero__inner{ max-width: 980px; }
 
+/* Loop de respingo de lava — toca enquanto o hero está parado (antes
+   do usuário rolar). Assim que o scroll começa, esmaece pro canvas
+   da sequência (heroSequence cross-fade os dois via opacity). */
+.hero__idle-splash{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: -3;
+  opacity: 1;
+  transition: opacity .5s ease;
+}
+.hero__idle-splash.is-hidden{ opacity: 0; }
+
+/* Hero sequence — fundo em vídeo (frames), preso e "esfregado" pelo
+   scroll (mesma técnica da hero do Téssera): bigorna forjando código. */
+.hero__sequence{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: -2;
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.hero__sequence.is-active{ opacity: 1; }
+.hero__sequence-scrim{
+  position: absolute; inset: 0;
+  z-index: -1;
+  /* fade horizontal (legibilidade do texto) + fade no rodapé, pra
+     a seção seguinte (.problema) continuar sem costura visível */
+  background:
+    linear-gradient(180deg, transparent 55%, rgba(6,5,4,.75) 100%),
+    linear-gradient(90deg, var(--bg) 0%, rgba(6,5,4,.82) 40%, rgba(6,5,4,.3) 68%, transparent 100%);
+}
+
+/* Isca inicial ("algo extraordinário...") centralizada na hero
+   inteira — some assim que o usuário rola, revelando o título
+   (que mora no fluxo normal do hero__inner) por baixo */
+.hero__teaser{
+  position: absolute; inset: 0;
+  z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 0 var(--gutter);
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  line-height: 1.08;
+  letter-spacing: -.01em;
+  /* fica em --ink no repouso; ao rolar, o JS anima o
+     background-position pra uma onda de brasa varrer o texto
+     antes de sumir (mesma paleta ember do resto da marca) */
+  background: linear-gradient(100deg,
+    var(--ink) 0%, var(--ink) 42%,
+    var(--ember) 52%, var(--ember-bright) 60%, var(--ember-white) 66%, var(--ember) 76%,
+    var(--ink) 88%, var(--ink) 100%);
+  background-size: 320% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  pointer-events: none;
+}
+
 .hero__title{
   font-family: var(--font-display);
   font-weight: 800;
@@ -309,7 +373,14 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   letter-spacing: -.01em;
 }
 .hero__title-line{ display: block; overflow: hidden; }
-.hero__title-line--ember .line-inner{
+/* .line-inner/.rl-inner viram os alvos do translate(yPercent) do GSAP
+   pros reveals de linha — precisam ser inline-block, porque transform
+   não tem efeito nenhum em elementos display:inline (spec do CSS).
+   .word-mask/.word-inner fazem o mesmo por palavra, no título. */
+.line-inner, .rl-inner{ display: inline-block; }
+.word-mask{ display: inline-block; overflow: hidden; }
+.word-inner{ display: inline-block; }
+.hero__title-line--ember .word-inner{
   background: linear-gradient(100deg, var(--ember) 10%, var(--ember-mid) 35%, var(--ember-bright) 50%, var(--ember-white) 62%, var(--ember) 90%);
   background-size: 250% 100%;
   -webkit-background-clip: text;
@@ -329,16 +400,6 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   color: var(--ink-dim);
   line-height: 1.55;
 }
-
-.hero__segments{
-  margin-top: 1.25rem; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
-}
-.hero__segments-label{
-  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--muted); flex-shrink: 0;
-}
-.tag-row{ display: flex; flex-wrap: wrap; gap: .5rem; }
-.tag-row .tag-pill:hover{ border-color: var(--ember); color: var(--ember-bright); }
 
 .hero__actions{ margin-top: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; }
 
@@ -378,6 +439,11 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .problema{
   position: relative; z-index: 3;
   padding: clamp(5rem, 12vh, 7rem) var(--gutter) clamp(3rem, 6vh, 4rem);
+  /* continua o fundo da hero (último frame, o <HTML> em brasa)
+     esmaecendo pro --bg sólido, sem faixa de corte entre as seções */
+  background:
+    linear-gradient(180deg, rgba(6,5,4,.6) 0%, var(--bg) 45%),
+    url('assets/hero-sequence/frame-110.webp') center top / cover no-repeat;
 }
 .problema__inner{ max-width: 760px; margin: 0 auto; }
 .problema h2{
@@ -602,7 +668,7 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .caso__tags{ display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.4rem; }
 
 /* ============================================================
-   Tag pill — reused by caso__tags and hero__segments
+   Tag pill — usado pelas caso__tags
    ============================================================ */
 .tag-pill{
   display: inline-block;
@@ -873,6 +939,8 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 @media (max-width: 900px){
   .site-nav, .header-cta{ display: none; }
   .nav-toggle{ display: flex; }
+  .site-header{ justify-content: space-between; }
+  .brand{ margin-right: 0; }
 
   .servicos__grid{ grid-template-columns: repeat(2, 1fr); }
   .trust-strip__grid{ grid-template-columns: repeat(2, 1fr); }
@@ -925,7 +993,6 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   .browser-frame{ grid-column: 1 / -1 !important; }
   .cta-final__actions .btn, .hero__actions .btn{ width: 100%; }
   .cta-final__glow{ display: none; }
-  .hero__segments{ flex-direction: column; align-items: flex-start; gap: .6rem; }
   .progress-ring{ width: 44px; height: 44px; }
 
   .stats__grid{ grid-template-columns: 1fr; gap: 1.5rem; }
@@ -941,4 +1008,6 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
   .marquee__track{ animation: none; }
   #embers{ display: none; }
   .cursor-glow{ display: none; }
+  .hero__idle-splash{ display: none; }
+  .hero__sequence{ opacity: 1; }
 }

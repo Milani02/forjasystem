@@ -85,6 +85,92 @@
   })();
 
   /* ============================================================
+     Hero sequence — fundo em vídeo convertido em frames, preso e
+     "esfregado" pelo scroll (mesma técnica da hero do Téssera).
+     Bigorna forjando código: metal derretido caindo sobre símbolos
+     de código em brasa (</>, {}, <html>), câmera em dolly-in até o
+     close final. No desktop, o resto do texto do hero (heroReveal)
+     é esfregado com o progresso desse scroll — chamada mais abaixo,
+     depois do texto estar pronto.
+  ============================================================ */
+  function heroSequence(heroReveal, onDeferred) {
+    const canvas = document.querySelector('.hero__sequence');
+    if (!canvas) return;
+    const idleSplash = document.querySelector('.hero__idle-splash');
+    const ctx = canvas.getContext('2d');
+    const FRAME_COUNT = 110;
+    const framePath = (i) => `assets/hero-sequence/frame-${String(i).padStart(3, '0')}.webp`;
+
+    const images = [];
+    let currentFrame = 0;
+
+    function drawFrame(index) {
+      const img = images[index];
+      if (!img || !img.complete || !img.naturalWidth) return;
+      const cw = canvas.width, ch = canvas.height;
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const scale = Math.max(cw / iw, ch / ih); // cover
+      const dw = iw * scale, dh = ih * scale;
+      ctx.clearRect(0, 0, cw, ch);
+      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      drawFrame(currentFrame);
+    }
+
+    // Frame 90 também é usado como fundo (CSS) da próxima seção, então
+    // pode chegar do cache do navegador fora de ordem — o redraw tem
+    // que reagir a QUALQUER frame que termine de carregar, não só o
+    // primeiro onload que aparecer, senão o canvas fica em branco se
+    // o frame 1 ainda não tiver chegado nesse momento.
+    for (let i = 1; i <= FRAME_COUNT; i++) {
+      const idx = i - 1;
+      const img = new Image();
+      img.src = framePath(i);
+      img.onload = () => { if (idx === currentFrame) drawFrame(currentFrame); };
+      images.push(img);
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    if (reduceMotion) return; // frame 1 estático já basta; sem scroll-jack
+
+    gsap.matchMedia().add('(min-width: 901px)', () => {
+      onDeferred();
+      let started = false;
+      const st = ScrollTrigger.create({
+        trigger: '.hero',
+        start: 'top top',
+        end: '+=130%',
+        pin: true,
+        scrub: 0.4,
+        onUpdate: (self) => {
+          const idx = Math.min(FRAME_COUNT - 1, Math.floor(self.progress * FRAME_COUNT));
+          if (idx !== currentFrame) { currentFrame = idx; drawFrame(idx); }
+          // Enquanto o hero está parado (progress 0) o loop de
+          // respingo de lava toca sozinho; no primeiro pixel de
+          // scroll, troca pro canvas da sequência (sem volta).
+          if (!started && self.progress > 0) {
+            started = true;
+            canvas.classList.add('is-active');
+            if (idleSplash) idleSplash.classList.add('is-hidden');
+          }
+          // heroReveal termina de entrar já no primeiro terço do
+          // scroll — "assim que rola" as frases aparecem, e o resto
+          // do pin fica livre pra admirar o fundo.
+          heroReveal.progress(Math.min(1, self.progress / 0.33));
+        },
+      });
+      return () => st.kill();
+    });
+  }
+
+  /* ============================================================
      Circuito de fundo — pulsos de brasa viajando pelas linhas
      (a dualidade "Forja" + "System" do nome, sempre no ar)
   ============================================================ */
@@ -181,8 +267,10 @@
   (function whatsappFab() {
     const fab = document.querySelector('.whatsapp-fab');
     if (!fab || reduceMotion) return;
+    // Só aparece depois de DUAS seções abaixo do hero (problema é a
+    // 1ª, manifesto é a 2ª) — não logo na primeira.
     ScrollTrigger.create({
-      trigger: '.problema',
+      trigger: '.manifesto',
       start: 'top 80%',
       once: true,
       onEnter: () => {
@@ -215,46 +303,79 @@
   })();
 
   /* ------------------------------------------------------------
-     Split hero title lines + eyebrow for reveal
+     Split hero title into words (cada palavra com sua própria
+     máscara) + eyebrow for reveal
   ------------------------------------------------------------ */
   function wrapLine(el) {
     const text = el.textContent;
     el.innerHTML = `<span class="line-inner">${text}</span>`;
     return el.querySelector('.line-inner');
   }
-  function wrapLineWithEm(el) {
-    const inner = document.createElement('span');
-    inner.className = 'line-inner';
-    inner.innerHTML = el.innerHTML;
-    el.innerHTML = '';
-    el.appendChild(inner);
-    return inner;
+  function wrapWords(el) {
+    const words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words
+      .map((w) => `<span class="word-mask"><span class="word-inner">${w}</span></span>`)
+      .join(' ');
+    return Array.from(el.querySelectorAll('.word-inner'));
   }
 
   const titleLines = gsap.utils.toArray('.hero__title [data-split]');
-  const lineInners = titleLines.map((el) => wrapLineWithEm(el));
+  const wordInners = titleLines.flatMap((el) => wrapWords(el));
 
   const eyebrow = document.querySelector('.hero .eyebrow[data-split]');
   let eyebrowInner = null;
   if (eyebrow) eyebrowInner = wrapLine(eyebrow);
 
-  gsap.set(lineInners, { yPercent: 110 });
+  gsap.set(wordInners, { yPercent: 110 });
   if (eyebrowInner) gsap.set(eyebrowInner, { yPercent: 130, opacity: 0 });
+  // A isca já nasce visível (é a primeira coisa que o usuário vê) —
+  // só o heroReveal mexe na opacidade dela depois, pra saída. Ter
+  // dois timelines animando a mesma propriedade em momentos
+  // diferentes causava um "cabo de guerra" onde a entrada imediata
+  // sobrescrevia o esfregar do scroll.
+  gsap.set('.hero__teaser', { opacity: 1, y: 0, backgroundPosition: '0% 50%' });
   gsap.set('.hero__sub, .hero__actions, .hero__ticker', { opacity: 0, y: 24 });
   gsap.set('.scroll-cue', { opacity: 0 });
   gsap.set('.site-header', { opacity: 0, y: -12 });
   if (!reduceMotion) gsap.set('.whatsapp-fab', { opacity: 0, scale: 0.4, y: 40 });
 
   /* ------------------------------------------------------------
-     Intro timeline
+     Chrome imediato — header e dica de rolagem aparecem já no
+     load. A isca ("algo extraordinário...", o gancho que chama
+     atenção) já nasce visível; o título de verdade (heroReveal,
+     abaixo) substitui ela conforme o usuário rola.
   ------------------------------------------------------------ */
-  const intro = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.15 });
+  gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.15 })
+    .to('.site-header', { opacity: 1, y: 0, duration: 0.5 }, 0)
+    .to('.scroll-cue', { opacity: 1, duration: 0.6 }, 0.3);
 
-  intro.to('.site-header', { opacity: 1, y: 0, duration: 0.01 }, 0);
-  if (eyebrowInner) intro.to(eyebrowInner, { yPercent: 0, opacity: 1, duration: 0.7 }, 0.1);
-  intro.to(lineInners, { yPercent: 0, duration: 1, stagger: 0.09, ease: 'power4.out' }, 0.25);
-  intro.to('.hero__sub, .hero__actions, .hero__ticker', { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, '-=0.55');
-  intro.to('.scroll-cue', { opacity: 1, duration: 0.6 }, '-=0.4');
+  /* ------------------------------------------------------------
+     Hero reveal — a isca some, o título entra, e eyebrow/subtítulo/
+     ações/ticker aparecem junto. Pausado por padrão; no desktop sem
+     reduced motion, heroSequence() esfrega isso 1:1 com o progresso
+     do scroll (as frases vão aparecendo assim que o usuário rola).
+     Nos outros casos (mobile ou prefers-reduced-motion) toca direto.
+  ------------------------------------------------------------ */
+  const heroReveal = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+
+  // a isca fica sozinha por um bom tempo primeiro: a onda de brasa
+  // (gradiente laranja da marca) varre o texto dela conforme rola,
+  // só depois é que ela some e o título de verdade começa a entrar
+  // — bem mais espaçado do que antes, não é uma troca instantânea
+  heroReveal.to('.hero__teaser', { backgroundPosition: '100% 50%', duration: 1.1, ease: 'power1.inOut' }, 0);
+  heroReveal.to('.hero__teaser', { opacity: 0, y: -16, duration: 0.5, ease: 'power2.in' }, 0.95);
+  // palavra por palavra, na ordem de leitura, como se fosse sendo
+  // "desenhado" — stagger pequeno porque agora são ~6 itens, não 3
+  heroReveal.to(wordInners, { yPercent: 0, duration: 0.7, stagger: 0.06, ease: 'power4.out' }, 1.05);
+  if (eyebrowInner) heroReveal.to(eyebrowInner, { yPercent: 0, opacity: 1, duration: 0.7 }, 1.05);
+  heroReveal.to('.hero__sub, .hero__actions, .hero__ticker', { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, 1.45);
+
+  let heroRevealDeferred = false;
+  heroSequence(heroReveal, () => { heroRevealDeferred = true; });
+  // Fallback (mobile ou prefers-reduced-motion): sem scroll pra
+  // acionar o reveal, então toca sozinho — com um respiro depois da
+  // isca aparecer, pra não brigar com a entrada dela.
+  if (!heroRevealDeferred) gsap.delayedCall(1.6, () => heroReveal.play());
 
   /* ------------------------------------------------------------
      Generic [data-reveal] fade-up on scroll
