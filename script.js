@@ -5,11 +5,86 @@
   gsap.registerPlugin(ScrollTrigger);
 
   /* ============================================================
+     Preloader — "acendendo a forja" antes do hero. Progresso
+     simulado por tempo (sensação de carregamento), mas só fecha
+     de verdade quando window.load + fontes terminarem — o que
+     demorar mais entre isso e um tempo mínimo. Dispara app:ready
+     pro resto do script saber que pode começar a entrada do hero.
+  ============================================================ */
+  (function preloader() {
+    const el = document.querySelector('[data-preloader]');
+    if (!el || reduceMotion) {
+      document.documentElement.classList.remove('is-loading');
+      if (el) el.remove();
+      window.dispatchEvent(new Event('app:ready'));
+      return;
+    }
+
+    const fillEl = el.querySelector('[data-preloader-fill]');
+    const pctEl = el.querySelector('[data-preloader-pct]');
+    const markEl = el.querySelector('.preloader__mark');
+
+    let shown = 0, target = 0, closing = false;
+
+    function setHeat(pct) {
+      const stage = pct > 85 ? 4 : pct > 60 ? 3 : pct > 30 ? 2 : 1;
+      markEl.className = 'preloader__mark preloader__mark--heat-' + stage;
+    }
+
+    function raf() {
+      if (closing) return;
+      shown += (target - shown) * 0.1 + 0.1;
+      if (shown > target) shown = target;
+      const val = Math.min(99, Math.round(shown));
+      fillEl.style.width = val + '%';
+      pctEl.textContent = val + '%';
+      setHeat(val);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    const simTimer = setInterval(() => {
+      target = Math.min(90, target + 3 + Math.random() * 7);
+    }, 200);
+
+    const loaded = new Promise((res) => {
+      if (document.readyState === 'complete') return res();
+      window.addEventListener('load', res, { once: true });
+    });
+    const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    const minTime = new Promise((res) => setTimeout(res, 1500));
+
+    Promise.all([loaded, fontsReady, minTime]).then(() => {
+      clearInterval(simTimer);
+      closing = true;
+      shown = 100;
+      fillEl.style.width = '100%';
+      pctEl.textContent = '100%';
+      setHeat(100);
+
+      gsap.delayedCall(0.3, () => {
+        gsap.timeline({
+          onComplete: () => {
+            el.remove();
+            document.documentElement.classList.remove('is-loading');
+            window.dispatchEvent(new Event('app:ready'));
+          },
+        })
+          .to(el.querySelector('.preloader__stage'), { opacity: 0, y: -14, duration: 0.35, ease: 'power2.in' })
+          .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.65, ease: 'power4.inOut' }, '-=0.05');
+      });
+    });
+  })();
+
+  /* ============================================================
      Ember particle canvas — the site's looping visual signature
   ============================================================ */
   (function embers() {
     const canvas = document.getElementById('embers');
-    if (!canvas || reduceMotion) return;
+    // efeito de fundo puramente decorativo (sem scroll-jack, sem
+    // movimento brusco) — mostra mesmo com prefers-reduced-motion,
+    // ao contrário das animações mais fortes do resto do site
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let w, h, particles, raf;
 
@@ -85,90 +160,89 @@
   })();
 
   /* ============================================================
-     Hero sequence — fundo em vídeo convertido em frames, preso e
-     "esfregado" pelo scroll (mesma técnica da hero do Téssera).
-     Bigorna forjando código: metal derretido caindo sobre símbolos
-     de código em brasa (</>, {}, <html>), câmera em dolly-in até o
-     close final. No desktop, o resto do texto do hero (heroReveal)
-     é esfregado com o progresso desse scroll — chamada mais abaixo,
-     depois do texto estar pronto.
+     Respingos de magma do hero — saltam em arcos (gravidade) sobre
+     o vídeo de fundo, contínuo enquanto a seção existe.
   ============================================================ */
-  function heroSequence(heroReveal, onDeferred) {
-    const canvas = document.querySelector('.hero__sequence');
+  (function heroMagmaSplash() {
+    const canvas = document.querySelector('.hero__magma-splash');
+    // mesmo racional do embers(): fundo decorativo, sem scroll-jack —
+    // mostra mesmo com prefers-reduced-motion
     if (!canvas) return;
-    const idleSplash = document.querySelector('.hero__idle-splash');
     const ctx = canvas.getContext('2d');
-    const FRAME_COUNT = 110;
-    const framePath = (i) => `assets/hero-sequence/frame-${String(i).padStart(3, '0')}.webp`;
-
-    const images = [];
-    let currentFrame = 0;
-
-    function drawFrame(index) {
-      const img = images[index];
-      if (!img || !img.complete || !img.naturalWidth) return;
-      const cw = canvas.width, ch = canvas.height;
-      const iw = img.naturalWidth, ih = img.naturalHeight;
-      const scale = Math.max(cw / iw, ch / ih); // cover
-      const dw = iw * scale, dh = ih * scale;
-      ctx.clearRect(0, 0, cw, ch);
-      ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-    }
+    const GRAVITY = 0.16;
+    let w, h, poolY, particles = [], raf;
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * window.devicePixelRatio;
-      canvas.height = rect.height * window.devicePixelRatio;
-      drawFrame(currentFrame);
+      w = canvas.width = rect.width;
+      h = canvas.height = rect.height;
+      // a "poça" fica presa à base da janela visível, não da seção
+      // inteira — em telas baixas o hero costuma crescer além do
+      // viewport (texto grande empurra a altura), e sem isso os
+      // respingos nasceriam fora da área visível sem rolar
+      poolY = Math.min(h, window.innerHeight);
     }
 
-    // Frame 90 também é usado como fundo (CSS) da próxima seção, então
-    // pode chegar do cache do navegador fora de ordem — o redraw tem
-    // que reagir a QUALQUER frame que termine de carregar, não só o
-    // primeiro onload que aparecer, senão o canvas fica em branco se
-    // o frame 1 ainda não tiver chegado nesse momento.
-    for (let i = 1; i <= FRAME_COUNT; i++) {
-      const idx = i - 1;
-      const img = new Image();
-      img.src = framePath(i);
-      img.onload = () => { if (idx === currentFrame) drawFrame(currentFrame); };
-      images.push(img);
+    function makeDroplet() {
+      const speed = 3.6 + Math.random() * 5;
+      const angle = Math.PI / 2 + (Math.random() * 0.9 - 0.45); // maiormente pra cima, leque estreito
+      return {
+        x: w * (0.15 + Math.random() * 0.7),
+        y: poolY + 6,
+        vx: Math.cos(angle) * speed * 0.6,
+        vy: -Math.sin(angle) * speed,
+        r: 1.6 + Math.random() * 3,
+        hue: Math.random(), // 0 = ember, 1 = amber/white (quente)
+        alpha: 0.55 + Math.random() * 0.35,
+        life: 0,
+      };
+    }
+
+    function colorFor(p) {
+      const g = Math.round(90 + (200 - 90) * p.hue);
+      const b = Math.round(31 + (180 - 31) * p.hue);
+      return `255,${g},${b}`;
+    }
+
+    function spawnBurst() {
+      const count = 1 + Math.floor(Math.random() * 3);
+      for (let i = 0; i < count; i++) particles.push(makeDroplet());
+      setTimeout(spawnBurst, 220 + Math.random() * 480);
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach((p) => {
+        p.vy += GRAVITY;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life += 1;
+        const fade = Math.max(0, 1 - p.life / 130);
+        const a = p.alpha * fade;
+        const r = p.r * (0.6 + 0.4 * fade);
+        const rgb = colorFor(p);
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 5);
+        grad.addColorStop(0, `rgba(${rgb},${a})`);
+        grad.addColorStop(1, `rgba(${rgb},0)`);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      particles = particles.filter((p) => p.y < poolY + 40 && p.life < 130);
+      raf = requestAnimationFrame(tick);
     }
 
     resize();
+    raf = requestAnimationFrame(tick);
+    spawnBurst();
     window.addEventListener('resize', resize, { passive: true });
 
-    if (reduceMotion) return; // frame 1 estático já basta; sem scroll-jack
-
-    gsap.matchMedia().add('(min-width: 901px)', () => {
-      onDeferred();
-      let started = false;
-      const st = ScrollTrigger.create({
-        trigger: '.hero',
-        start: 'top top',
-        end: '+=130%',
-        pin: true,
-        scrub: 0.4,
-        onUpdate: (self) => {
-          const idx = Math.min(FRAME_COUNT - 1, Math.floor(self.progress * FRAME_COUNT));
-          if (idx !== currentFrame) { currentFrame = idx; drawFrame(idx); }
-          // Enquanto o hero está parado (progress 0) o loop de
-          // respingo de lava toca sozinho; no primeiro pixel de
-          // scroll, troca pro canvas da sequência (sem volta).
-          if (!started && self.progress > 0) {
-            started = true;
-            canvas.classList.add('is-active');
-            if (idleSplash) idleSplash.classList.add('is-hidden');
-          }
-          // heroReveal termina de entrar já no primeiro terço do
-          // scroll — "assim que rola" as frases aparecem, e o resto
-          // do pin fica livre pra admirar o fundo.
-          heroReveal.progress(Math.min(1, self.progress / 0.33));
-        },
-      });
-      return () => st.kill();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else raf = requestAnimationFrame(tick);
     });
-  }
+  })();
 
   /* ============================================================
      Circuito de fundo — pulsos de brasa viajando pelas linhas
@@ -328,54 +402,42 @@
 
   gsap.set(wordInners, { yPercent: 110 });
   if (eyebrowInner) gsap.set(eyebrowInner, { yPercent: 130, opacity: 0 });
-  // A isca já nasce visível (é a primeira coisa que o usuário vê) —
-  // só o heroReveal mexe na opacidade dela depois, pra saída. Ter
-  // dois timelines animando a mesma propriedade em momentos
-  // diferentes causava um "cabo de guerra" onde a entrada imediata
-  // sobrescrevia o esfregar do scroll.
-  gsap.set('.hero__teaser', { opacity: 1, y: 0, backgroundPosition: '0% 50%' });
   gsap.set('.hero__sub, .hero__actions, .hero__ticker', { opacity: 0, y: 24 });
   gsap.set('.scroll-cue', { opacity: 0 });
   gsap.set('.site-header', { opacity: 0, y: -12 });
   if (!reduceMotion) gsap.set('.whatsapp-fab', { opacity: 0, scale: 0.4, y: 40 });
 
   /* ------------------------------------------------------------
-     Chrome imediato — header e dica de rolagem aparecem já no
-     load. A isca ("algo extraordinário...", o gancho que chama
-     atenção) já nasce visível; o título de verdade (heroReveal,
-     abaixo) substitui ela conforme o usuário rola.
-  ------------------------------------------------------------ */
-  gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.15 })
-    .to('.site-header', { opacity: 1, y: 0, duration: 0.5 }, 0)
-    .to('.scroll-cue', { opacity: 1, duration: 0.6 }, 0.3);
-
-  /* ------------------------------------------------------------
-     Hero reveal — a isca some, o título entra, e eyebrow/subtítulo/
-     ações/ticker aparecem junto. Pausado por padrão; no desktop sem
-     reduced motion, heroSequence() esfrega isso 1:1 com o progresso
-     do scroll (as frases vão aparecendo assim que o usuário rola).
-     Nos outros casos (mobile ou prefers-reduced-motion) toca direto.
+     Hero reveal — título entra palavra por palavra, eyebrow/sub/
+     ações/ticker em seguida. Toca uma vez, direto — sem scroll-jack,
+     o vídeo de fundo já roda sozinho em loop.
   ------------------------------------------------------------ */
   const heroReveal = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
 
-  // a isca fica sozinha por um bom tempo primeiro: a onda de brasa
-  // (gradiente laranja da marca) varre o texto dela conforme rola,
-  // só depois é que ela some e o título de verdade começa a entrar
-  // — bem mais espaçado do que antes, não é uma troca instantânea
-  heroReveal.to('.hero__teaser', { backgroundPosition: '100% 50%', duration: 1.1, ease: 'power1.inOut' }, 0);
-  heroReveal.to('.hero__teaser', { opacity: 0, y: -16, duration: 0.5, ease: 'power2.in' }, 0.95);
-  // palavra por palavra, na ordem de leitura, como se fosse sendo
-  // "desenhado" — stagger pequeno porque agora são ~6 itens, não 3
-  heroReveal.to(wordInners, { yPercent: 0, duration: 0.7, stagger: 0.06, ease: 'power4.out' }, 1.05);
-  if (eyebrowInner) heroReveal.to(eyebrowInner, { yPercent: 0, opacity: 1, duration: 0.7 }, 1.05);
-  heroReveal.to('.hero__sub, .hero__actions, .hero__ticker', { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, 1.45);
+  heroReveal.to(wordInners, { yPercent: 0, duration: 0.7, stagger: 0.06, ease: 'power4.out' }, 0);
+  if (eyebrowInner) heroReveal.to(eyebrowInner, { yPercent: 0, opacity: 1, duration: 0.7 }, 0);
+  heroReveal.to('.hero__sub, .hero__actions, .hero__ticker', { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, 0.4);
 
-  let heroRevealDeferred = false;
-  heroSequence(heroReveal, () => { heroRevealDeferred = true; });
-  // Fallback (mobile ou prefers-reduced-motion): sem scroll pra
-  // acionar o reveal, então toca sozinho — com um respiro depois da
-  // isca aparecer, pra não brigar com a entrada dela.
-  if (!heroRevealDeferred) gsap.delayedCall(1.6, () => heroReveal.play());
+  /* ------------------------------------------------------------
+     Chrome imediato — header, dica de rolagem e o reveal do hero.
+     Só começa depois que o preloader some (evento app:ready) — se
+     o preloader já tiver sido removido (reduced motion), o evento
+     já foi disparado antes desse listener existir, então dispara
+     na hora também.
+  ------------------------------------------------------------ */
+  function startHeroEntry() {
+    gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.15 })
+      .to('.site-header', { opacity: 1, y: 0, duration: 0.5 }, 0)
+      .to('.scroll-cue', { opacity: 1, duration: 0.6 }, 0.3);
+
+    heroReveal.play();
+  }
+
+  if (document.documentElement.classList.contains('is-loading')) {
+    window.addEventListener('app:ready', startHeroEntry, { once: true });
+  } else {
+    startHeroEntry();
+  }
 
   /* ------------------------------------------------------------
      Generic [data-reveal] fade-up on scroll

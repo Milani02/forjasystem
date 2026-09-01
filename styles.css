@@ -67,6 +67,65 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .skip-link:focus{ left: 1rem; top: 1rem; }
 
 /* ============================================================
+   Preloader — "acendendo a forja" antes de revelar o hero.
+   Progresso simulado (sensação de carregamento real) que só
+   fecha depois que a página termina de carregar de verdade
+   (ver preloader() em script.js). Some com um golpe: o texto
+   sai, e uma cortina (clip-path) fecha de baixo pra cima.
+   ============================================================ */
+html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
+
+.preloader{
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  clip-path: inset(0 0 0% 0);
+}
+.preloader__stage{
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  width: min(260px, 70vw);
+  text-align: center;
+}
+.preloader__mark{
+  width: 44px; height: 44px; margin-bottom: .75rem;
+  filter: drop-shadow(0 0 0 rgba(255,90,31,0));
+  transition: filter .5s ease;
+}
+.preloader__mark--heat-1{ filter: drop-shadow(0 0 6px rgba(255,90,31,.25)); }
+.preloader__mark--heat-2{ filter: drop-shadow(0 0 10px rgba(255,90,31,.42)); }
+.preloader__mark--heat-3{ filter: drop-shadow(0 0 16px rgba(255,90,31,.58)); }
+.preloader__mark--heat-4{ filter: drop-shadow(0 0 24px rgba(255,138,61,.8)); }
+.preloader__pct{
+  font-family: var(--font-display); font-weight: 800;
+  font-size: clamp(2.6rem, 9vw, 4rem); line-height: 1;
+  background: linear-gradient(100deg, var(--ember) 10%, var(--ember-mid) 40%, var(--ember-bright) 60%, var(--ember) 90%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+.preloader__word{
+  margin-top: .35rem;
+  font-family: var(--font-mono); font-size: .75rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.preloader__meter{
+  margin-top: 1rem; width: 100%; height: 2px;
+  background: var(--line); border-radius: 999px; overflow: hidden;
+}
+.preloader__meter-fill{
+  display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--ember-deep), var(--ember), var(--ember-bright));
+  box-shadow: 0 0 10px rgba(255,90,31,.6);
+}
+.preloader__sr{
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce){
+  .preloader{ display: none; }
+}
+
+/* ============================================================
    Texture / canvas / cursor
    ============================================================ */
 .grain{
@@ -301,30 +360,14 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 }
 .hero__inner{ max-width: 980px; }
 
-/* Loop de respingo de lava — toca enquanto o hero está parado (antes
-   do usuário rolar). Assim que o scroll começa, esmaece pro canvas
-   da sequência (heroSequence cross-fade os dois via opacity). */
-.hero__idle-splash{
+/* Vídeo de fundo do hero — roda em loop continuamente, sem scroll-jack */
+.hero__video{
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  z-index: -3;
-  opacity: 1;
-  transition: opacity .5s ease;
-}
-.hero__idle-splash.is-hidden{ opacity: 0; }
-
-/* Hero sequence — fundo em vídeo (frames), preso e "esfregado" pelo
-   scroll (mesma técnica da hero do Téssera): bigorna forjando código. */
-.hero__sequence{
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
   z-index: -2;
-  opacity: 0;
-  transition: opacity .5s ease;
 }
-.hero__sequence.is-active{ opacity: 1; }
-.hero__sequence-scrim{
+.hero__video-scrim{
   position: absolute; inset: 0;
   z-index: -1;
   /* fade horizontal (legibilidade do texto) + fade no rodapé, pra
@@ -334,33 +377,11 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
     linear-gradient(90deg, var(--bg) 0%, rgba(6,5,4,.82) 40%, rgba(6,5,4,.3) 68%, transparent 100%);
 }
 
-/* Isca inicial ("algo extraordinário...") centralizada na hero
-   inteira — some assim que o usuário rola, revelando o título
-   (que mora no fluxo normal do hero__inner) por baixo */
-.hero__teaser{
+/* Respingos de magma — saltam em arcos, fundo decorativo contínuo */
+.hero__magma-splash{
   position: absolute; inset: 0;
-  z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-  text-align: center;
-  padding: 0 var(--gutter);
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  font-size: clamp(2.4rem, 7vw, 5.5rem);
-  line-height: 1.08;
-  letter-spacing: -.01em;
-  /* fica em --ink no repouso; ao rolar, o JS anima o
-     background-position pra uma onda de brasa varrer o texto
-     antes de sumir (mesma paleta ember do resto da marca) */
-  background: linear-gradient(100deg,
-    var(--ink) 0%, var(--ink) 42%,
-    var(--ember) 52%, var(--ember-bright) 60%, var(--ember-white) 66%, var(--ember) 76%,
-    var(--ink) 88%, var(--ink) 100%);
-  background-size: 320% 100%;
-  background-position: 0% 50%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  width: 100%; height: 100%;
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -406,8 +427,6 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .hero__ticker{
   margin-top: clamp(2rem, 6vh, 4.5rem);
   display: flex; align-items: center; gap: 1.25rem;
-  border-top: 1px solid var(--line);
-  padding-top: 1.25rem;
   max-width: 980px;
 }
 .hero__ticker-label{
@@ -439,11 +458,9 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 .problema{
   position: relative; z-index: 3;
   padding: clamp(5rem, 12vh, 7rem) var(--gutter) clamp(3rem, 6vh, 4rem);
-  /* continua o fundo da hero (último frame, o <HTML> em brasa)
-     esmaecendo pro --bg sólido, sem faixa de corte entre as seções */
-  background:
-    linear-gradient(180deg, rgba(6,5,4,.6) 0%, var(--bg) 45%),
-    url('assets/hero-sequence/frame-110.webp') center top / cover no-repeat;
+  /* esmaece direto do vídeo do hero pro --bg sólido, sem faixa de
+     corte nem imagem estática entre as seções */
+  background: linear-gradient(180deg, rgba(6,5,4,.6) 0%, var(--bg) 45%);
 }
 .problema__inner{ max-width: 760px; margin: 0 auto; }
 .problema h2{
@@ -1006,8 +1023,5 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   .marquee__track{ animation: none; }
-  #embers{ display: none; }
   .cursor-glow{ display: none; }
-  .hero__idle-splash{ display: none; }
-  .hero__sequence{ opacity: 1; }
 }

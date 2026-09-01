@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="is-loading">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,6 +79,16 @@
 </head>
 <body>
 
+<div class="preloader" data-preloader>
+  <div class="preloader__stage">
+    <img class="preloader__mark" src="assets/brand/logo-forja-mark.svg" alt="" width="48" height="48">
+    <span class="preloader__pct" data-preloader-pct>0%</span>
+    <p class="preloader__word">Acendendo a forja</p>
+    <div class="preloader__meter"><span class="preloader__meter-fill" data-preloader-fill></span></div>
+  </div>
+  <span class="preloader__sr" role="status">Carregando o site.</span>
+</div>
+
 <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
 <div class="grain" aria-hidden="true"></div>
@@ -149,13 +159,11 @@
 
   <!-- HERO -->
   <section class="hero" id="topo">
-    <video class="hero__idle-splash" aria-hidden="true" autoplay muted loop playsinline>
+    <video class="hero__video" aria-hidden="true" autoplay muted loop playsinline>
       <source src="assets/hero-idle/lava-splash.mp4" type="video/mp4">
     </video>
-    <canvas class="hero__sequence" aria-hidden="true"></canvas>
-    <div class="hero__sequence-scrim" aria-hidden="true"></div>
-
-    <p class="hero__teaser" aria-hidden="true">Algo extraordinário<br>está sendo forjado.</p>
+    <div class="hero__video-scrim" aria-hidden="true"></div>
+    <canvas class="hero__magma-splash" aria-hidden="true"></canvas>
 
     <div class="hero__inner">
       <p class="eyebrow" data-split>Sistemas · Sites · Automações</p>
