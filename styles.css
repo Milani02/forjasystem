@@ -370,10 +370,12 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .hero__video-scrim{
   position: absolute; inset: 0;
   z-index: -1;
-  /* fade horizontal (legibilidade do texto) + fade no rodapé, pra
-     a seção seguinte (.problema) continuar sem costura visível */
+  /* fade horizontal (legibilidade do texto) + fade no rodapé — chega
+     em --bg 100% sólido bem antes da borda (não só 75%), deixando uma
+     folga de cor sólida que se funde sem costura com a seção seguinte,
+     não importa o que esteja passando no vídeo naquele instante */
   background:
-    linear-gradient(180deg, transparent 55%, rgba(6,5,4,.75) 100%),
+    linear-gradient(180deg, transparent 40%, rgba(6,5,4,.9) 78%, var(--bg) 94%),
     linear-gradient(90deg, var(--bg) 0%, rgba(6,5,4,.82) 40%, rgba(6,5,4,.3) 68%, transparent 100%);
 }
 
@@ -645,44 +647,53 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .trust-card p{ margin-top: .8rem; color: var(--ink-dim); line-height: 1.6; font-size: .92rem; }
 
 /* ============================================================
-   Projetos — horizontal scroll rig
+   Projetos — Z-axis depth scroll: cada card nasce minúsculo e
+   desfocado no centro, cresce em direção à "câmera" (foco nítido
+   no meio do trajeto) e sai pelas bordas laterais, revelando o
+   próximo card logo atrás. Ver heroDepthScroll-like rig em
+   script.js (projetosDepthScroll). Mobile: pilha vertical normal,
+   sem pin nem transform (ver media query abaixo).
    ============================================================ */
-.projetos{ position: relative; z-index: 3; padding: clamp(6rem, 14vh, 7rem) 0 0; }
+.projetos{ position: relative; z-index: 3; padding: clamp(6rem, 14vh, 7rem) 0 clamp(4rem, 10vh, 6rem); }
 .projetos__hint{ font-family: var(--font-mono); font-size: .78rem; color: var(--muted); }
-.hint-mobile{ display: none; }
 
-.projetos__pin{
-  position: relative;
-  overflow: hidden;
-  height: 100vh;
-}
-.projetos__track{
-  display: flex;
-  height: 100%;
-  width: fit-content;
-}
+.projetos__depth-stage{ position: relative; }
 
 .caso{
-  width: 100vw;
-  flex-shrink: 0;
-  height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(280px, 380px) 1fr;
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: center;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  max-width: 560px;
+  margin: 0 auto clamp(3.5rem, 9vh, 5rem);
   padding: 0 var(--gutter);
-  max-width: var(--container);
-  margin: 0 auto;
 }
+.caso:last-child{ margin-bottom: 0; }
+
+.caso__visual{ width: 100%; }
+.caso__visual a{ display: block; }
+.caso__info{ margin-top: 1.25rem; }
 
 .caso__tag{ font-family: var(--font-mono); font-size: .75rem; color: var(--ember); letter-spacing: .06em; }
 .caso__info h3{
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  font-size: clamp(1.9rem, 2.8vw, 2.6rem);
-  margin-top: .6rem; line-height: 1.08;
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  margin-top: .5rem; line-height: 1.1;
 }
-.caso__info p{ margin-top: 1.1rem; color: var(--ink-dim); line-height: 1.7; font-size: 1rem; max-width: 46ch; }
-.caso__tags{ display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.4rem; }
+.caso__info p{ margin-top: .6rem; color: var(--ink-dim); line-height: 1.6; font-size: .95rem; }
+.caso__tags{ display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-top: 1rem; }
+
+@media (min-width: 901px){
+  .projetos__depth-stage{
+    height: 100vh;
+    overflow: hidden;
+  }
+  .projetos__depth-stage .caso{
+    position: absolute;
+    top: 50%; left: 50%;
+    margin: 0; padding: 0;
+    width: min(520px, 42vw);
+    opacity: 0;
+    will-change: transform, opacity, filter;
+  }
+}
 
 /* ============================================================
    Tag pill — usado pelas caso__tags
@@ -694,13 +705,10 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   transition: border-color .3s var(--ease), color .3s var(--ease);
 }
 
-.caso__gallery{ display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; }
-.caso__gallery--single{ grid-template-columns: 1fr; }
 .browser-frame{
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
   overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.7);
 }
-.browser-frame--wide{ grid-column: 1 / -1; }
 .browser-frame__bar{ display: flex; gap: 6px; padding: .65rem .8rem; background: var(--surface-2); border-bottom: 1px solid var(--line); }
 .browser-frame__bar span{ width: 8px; height: 8px; border-radius: 50%; background: var(--line-bright); }
 .browser-frame img{ width: 100%; height: auto; display: block; }
@@ -970,27 +978,6 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   .cta-final__grid{ grid-template-columns: 1fr; gap: 3rem; }
   .chat-mock{ max-width: 460px; }
 
-  .hint-desktop{ display: none; }
-  .hint-mobile{ display: inline; }
-
-  /* Horizontal scroll-jack is desktop-only; stack panels on smaller screens */
-  .projetos__pin{ height: auto; overflow: visible; }
-  .projetos__track{ display: block; width: auto; }
-  .caso{
-    width: auto; height: auto; min-height: 0;
-    grid-template-columns: 1fr;
-    padding: 0 var(--gutter);
-    margin: 0 auto clamp(3rem, 7vh, 4rem);
-  }
-  .caso__gallery{ grid-template-columns: 1fr 1fr; }
-
-  /* Despoluir mobile: parágrafos de caso mais curtos, sem imagens extras */
-  .caso__info p{
-    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
-    overflow: hidden;
-  }
-  .browser-frame--secondary{ display: none; }
-
   /* Tira de confiança mais compacta, pra não repetir o ritmo dos cards de Serviços */
   .trust-card{ padding: 1.4rem; }
   .trust-card p{
@@ -1006,8 +993,6 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   .servicos__grid{ grid-template-columns: 1fr; }
   .trust-strip__grid{ grid-template-columns: 1fr; }
   .depoimentos__grid{ grid-template-columns: 1fr; }
-  .caso__gallery{ grid-template-columns: 1fr; }
-  .browser-frame{ grid-column: 1 / -1 !important; }
   .cta-final__actions .btn, .hero__actions .btn{ width: 100%; }
   .cta-final__glow{ display: none; }
   .progress-ring{ width: 44px; height: 44px; }

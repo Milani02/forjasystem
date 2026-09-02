@@ -160,7 +160,7 @@
   <!-- HERO -->
   <section class="hero" id="topo">
     <video class="hero__video" aria-hidden="true" autoplay muted loop playsinline>
-      <source src="assets/hero-idle/lava-splash.mp4" type="video/mp4">
+      <source src="assets/hero-idle/magma-hero.mp4" type="video/mp4">
     </video>
     <div class="hero__video-scrim" aria-hidden="true"></div>
     <canvas class="hero__magma-splash" aria-hidden="true"></canvas>
@@ -324,152 +324,144 @@
     </div>
   </section>
 
-  <!-- PROJETOS — trilho horizontal (desktop) -->
+  <!-- PROJETOS — Z-axis depth scroll (desktop); pilha vertical normal (mobile) -->
   <section class="projetos" id="projetos">
     <div class="section-head">
       <p class="eyebrow" data-reveal>Projetos reais, em produção</p>
       <h2 data-reveal-lines>Não é mockup.<br>É o que já está no ar.</h2>
-      <p class="projetos__hint" data-reveal><span class="hint-desktop">Role pra ver os seis projetos →</span><span class="hint-mobile">Arraste pra ver os seis projetos →</span></p>
+      <p class="projetos__hint" data-reveal>Role pra ver os sete projetos ↓</p>
     </div>
 
-    <div class="projetos__pin" data-horizontal-wrap>
-      <div class="projetos__track" data-horizontal-track>
+    <div class="projetos__depth-stage" data-depth-stage>
 
-        <!-- CASO 01 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_01 / 06</span>
-            <h3>Central de Atendimento multi-marca</h3>
-            <p>Um único sistema de central de atendimento (SAC), construído uma vez e
-            implantado para as três marcas do Grupo Biodinâmica: Biodinâmica, Injecta
-            e Oraltech. Cada empresa com sua própria identidade visual, seus próprios
-            setores e fila de tickets, rodando sobre a mesma base de código.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">Next.js</li><li class="tag-pill">Supabase</li><li class="tag-pill">Multi-tenant</li>
-            </ul>
+      <!-- CASO 01 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/sac-biodinamica-tickets.webp" alt="Painel de tickets da Central de Atendimento, versão Biodinâmica" loading="lazy">
           </div>
-          <div class="caso__gallery">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/sac-biodinamica-tickets.webp" alt="Painel de tickets da Central de Atendimento, versão Biodinâmica" loading="lazy">
-            </div>
-            <div class="browser-frame browser-frame--secondary">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/sac-injecta-login.webp" alt="Tela de login da Central de Atendimento, versão Injecta" loading="lazy">
-            </div>
-            <div class="browser-frame browser-frame--secondary">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/sac-oraltech-painel.webp" alt="Painel geral da Central de Atendimento, versão Oraltech" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_01 / 07</span>
+          <h3>Central de Atendimento multi-marca</h3>
+          <p>Um único SAC construído uma vez, implantado pras três marcas do Grupo Biodinâmica — cada uma com fila e identidade próprias.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">Next.js</li><li class="tag-pill">Supabase</li><li class="tag-pill">Multi-tenant</li>
+          </ul>
+        </div>
+      </article>
 
-        <!-- CASO 02 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_02 / 06</span>
-            <h3>Portal do Colaborador</h3>
-            <p>Portal interno com dashboards por perfil: colaborador, gestor, RH e
-            administrador. Aprovação de ocorrências em tempo real, relatórios em PDF
-            gerados automaticamente, criação em massa de acessos. O que antes rodava
-            em planilha e e-mail agora tem fila, histórico e dono.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">React</li><li class="tag-pill">Supabase</li><li class="tag-pill">Docker</li>
-            </ul>
+      <!-- CASO 02 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/portal-colaborador-dashboard.webp" alt="Dashboard do gestor no Portal do Colaborador, Grupo Biodinâmica" loading="lazy">
           </div>
-          <div class="caso__gallery caso__gallery--single">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/portal-colaborador-dashboard.webp" alt="Dashboard do gestor no Portal do Colaborador, Grupo Biodinâmica" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_02 / 07</span>
+          <h3>Portal do Colaborador</h3>
+          <p>Dashboards por perfil, aprovação de ocorrências em tempo real e relatórios automáticos — o que antes era planilha e e-mail.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">React</li><li class="tag-pill">Supabase</li><li class="tag-pill">Docker</li>
+          </ul>
+        </div>
+      </article>
 
-        <!-- CASO 03 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_03 / 06</span>
-            <h3>Assistente virtual com IA</h3>
-            <p>Chatbot institucional com IA generativa e busca semântica na base de
-            conhecimento da empresa. Responde dúvidas de produto 24 horas por dia e
-            escala para um atendente humano quando precisa, sem visitante nenhum
-            esperando resposta.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">Next.js</li><li class="tag-pill">n8n</li><li class="tag-pill">RAG</li><li class="tag-pill">GPT-4.1-mini</li>
-            </ul>
+      <!-- CASO 03 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/bioplic-chatbot.webp" alt="Assistente virtual com IA integrado ao site institucional" loading="lazy">
           </div>
-          <div class="caso__gallery caso__gallery--single">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/bioplic-chatbot.webp" alt="Assistente virtual com IA integrado ao site institucional" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_03 / 07</span>
+          <h3>Assistente virtual com IA</h3>
+          <p>Chatbot com IA generativa e busca semântica que responde 24h e escala pra um humano só quando precisa.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">Next.js</li><li class="tag-pill">n8n</li><li class="tag-pill">RAG</li><li class="tag-pill">GPT-4.1-mini</li>
+          </ul>
+        </div>
+      </article>
 
-        <!-- CASO 04 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_04 / 06</span>
-            <h3>Prestige Real Estate</h3>
-            <p>Projeto autoral para o nicho imobiliário de alto padrão: hero com
-            slider automático, contadores animados, depoimentos em marquee infinito
-            e todo o conteúdo centralizado num único arquivo editável, para
-            qualquer corretora assumir o site sem depender de programador para
-            trocar um texto.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">React</li><li class="tag-pill">Framer Motion</li><li class="tag-pill">Vite</li>
-            </ul>
+      <!-- CASO 04 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/prestige-hero.webp" alt="Página inicial do site Prestige Real Estate" loading="lazy">
           </div>
-          <div class="caso__gallery caso__gallery--single">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/prestige-hero.webp" alt="Página inicial do site Prestige Real Estate" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_04 / 07</span>
+          <h3>Prestige Real Estate</h3>
+          <p>Projeto autoral pro imobiliário de alto padrão: hero com slider, contadores animados e conteúdo 100% editável sem programador.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">React</li><li class="tag-pill">Framer Motion</li><li class="tag-pill">Vite</li>
+          </ul>
+        </div>
+      </article>
 
-        <!-- CASO 05 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_05 / 06</span>
-            <h3>Hub Grupo Biodinâmica</h3>
-            <p>Central única de acesso pra três marcas do grupo: Bioteca, WebChamado,
-            Ciosp, Portal do Colaborador, canais de RH e SAC de cada empresa, tudo
-            organizado num só lugar, com um modelo 3D interativo recebendo o
-            colaborador na entrada.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">Next.js</li><li class="tag-pill">Spline 3D</li><li class="tag-pill">Framer Motion</li>
-            </ul>
+      <!-- CASO 05 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/hub-biodinamica-painel.webp" alt="Hub de acesso do Grupo Biodinâmica, com modelo 3D interativo" loading="lazy">
           </div>
-          <div class="caso__gallery caso__gallery--single">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/hub-biodinamica-painel.webp" alt="Hub de acesso do Grupo Biodinâmica, com modelo 3D interativo" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_05 / 07</span>
+          <h3>Hub Grupo Biodinâmica</h3>
+          <p>Central única de acesso pras três marcas do grupo, com um modelo 3D interativo recebendo o colaborador na entrada.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">Next.js</li><li class="tag-pill">Spline 3D</li><li class="tag-pill">Framer Motion</li>
+          </ul>
+        </div>
+      </article>
 
-        <!-- CASO 06 -->
-        <article class="caso" data-panel>
-          <div class="caso__info">
-            <span class="caso__tag">CASO_06 / 06</span>
-            <h3>Painel de controle Ciosp</h3>
-            <p>Painel de controle de dados de acesso restrito à equipe Biodinâmica,
-            construído pra centralizar informação que hoje anda espalhada em
-            planilha, com login próprio e camada de segurança dedicada.</p>
-            <ul class="caso__tags">
-              <li class="tag-pill">React</li><li class="tag-pill">Vite</li><li class="tag-pill">Supabase</li>
-            </ul>
+      <!-- CASO 06 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <div class="browser-frame">
+            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+            <img src="assets/portfolio/ciosp-biodinamica-login.webp" alt="Tela de login do painel de controle Ciosp, Grupo Biodinâmica" loading="lazy">
           </div>
-          <div class="caso__gallery caso__gallery--single">
-            <div class="browser-frame browser-frame--wide">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/ciosp-biodinamica-login.webp" alt="Tela de login do painel de controle Ciosp, Grupo Biodinâmica" loading="lazy">
-            </div>
-          </div>
-        </article>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_06 / 07</span>
+          <h3>Painel de controle Ciosp</h3>
+          <p>Painel de dados de acesso restrito, centralizando informação que hoje anda espalhada em planilha, com login e segurança próprios.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">React</li><li class="tag-pill">Vite</li><li class="tag-pill">Supabase</li>
+          </ul>
+        </div>
+      </article>
 
-      </div>
+      <!-- CASO 07 -->
+      <article class="caso" data-depth-panel>
+        <div class="caso__visual">
+          <a href="https://imoveisdossonhos.imb.br" target="_blank" rel="noopener">
+            <div class="browser-frame">
+              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
+              <img src="assets/portfolio/imoveis-dos-sonhos-hero.webp" alt="Página inicial do site Imóveis dos Sonhos" loading="lazy">
+            </div>
+          </a>
+        </div>
+        <div class="caso__info">
+          <span class="caso__tag">CASO_07 / 07</span>
+          <h3>Imóveis dos Sonhos</h3>
+          <p>Site institucional pra imobiliária 100% digital em Londrina, Umuarama e Cafezal do Sul, com captação direta pelo WhatsApp.</p>
+          <ul class="caso__tags">
+            <li class="tag-pill">React</li><li class="tag-pill">Tailwind CSS</li><li class="tag-pill">Vite</li>
+          </ul>
+        </div>
+      </article>
+
     </div>
   </section>
 

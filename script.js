@@ -594,49 +594,87 @@
   const mm = gsap.matchMedia();
 
   /* ------------------------------------------------------------
-     Projetos — horizontal scroll rig (desktop only)
-     Precisa ser criado ANTES do pin da story: seu spacer precisa
-     já existir no documento para a story medir sua posição real.
+     Projetos — Z-axis depth scroll (desktop only): o scroll deixa
+     de mover X/Y e passa a mover profundidade. Cada card nasce
+     minúsculo e desfocado no centro, cresce em direção à "câmera"
+     (foco nítido no meio do trajeto) e sai pelas bordas laterais,
+     revelando o próximo logo atrás. STAGGER < 1 = janelas de cada
+     card se sobrepõem, então o próximo já cresce enquanto o
+     anterior ainda está saindo (sem buraco entre um e outro).
   ------------------------------------------------------------ */
   mm.add('(min-width: 901px)', () => {
-    const wrap = document.querySelector('[data-horizontal-wrap]');
-    const track = document.querySelector('[data-horizontal-track]');
-    if (!wrap || !track) return;
+    const stage = document.querySelector('[data-depth-stage]');
+    const panels = gsap.utils.toArray('[data-depth-panel]');
+    if (!stage || !panels.length) return () => {};
 
-    const getDistance = () => track.scrollWidth - window.innerWidth;
+    if (reduceMotion) {
+      panels.forEach((p) => gsap.set(p, { opacity: 1, position: 'relative', top: 'auto', left: 'auto', transform: 'none', filter: 'none' }));
+      return () => {};
+    }
 
-    const tween = gsap.to(track, {
-      x: () => -getDistance(),
-      ease: 'none',
-      scrollTrigger: {
-        trigger: wrap,
-        start: 'top top',
-        end: () => `+=${getDistance()}`,
-        pin: true,
-        scrub: 0.6,
-        invalidateOnRefresh: true,
-      },
-    });
+    const N = panels.length;
+    const STAGGER = 0.62;
+    const virtualLength = 1 + (N - 1) * STAGGER;
+    const clamp01 = (v) => Math.max(0, Math.min(1, v));
+    const mapClamped = (t, inMin, inMax, outMin, outMax) =>
+      outMin + (outMax - outMin) * clamp01((t - inMin) / (inMax - inMin));
 
-    // subtle scale-in per panel as it becomes centered
-    gsap.utils.toArray('.caso').forEach((panel) => {
-      const frames = panel.querySelectorAll('.browser-frame');
-      gsap.fromTo(frames,
-        { scale: 0.92, opacity: 0.5 },
-        {
-          scale: 1, opacity: 1, stagger: 0.06, ease: 'none',
-          scrollTrigger: {
-            trigger: panel,
-            containerAnimation: tween,
-            start: 'left 75%',
-            end: 'left 35%',
-            scrub: true,
-          },
+    function paint(progress) {
+      const v = progress * virtualLength;
+      panels.forEach((panel, i) => {
+        const t = v - i * STAGGER;
+
+        if (t <= -0.2 || t >= 1.2) {
+          panel.style.opacity = 0;
+          return;
         }
-      );
+
+        const scale = Math.max(0.05, 0.22 + t * 1.4);
+
+        let opacity;
+        if (t < -0.15) opacity = 0;
+        else if (t < 0.15) opacity = mapClamped(t, -0.15, 0.15, 0, 1);
+        else if (t <= 0.85) opacity = 1;
+        else if (t < 1.15) opacity = mapClamped(t, 0.85, 1.15, 1, 0);
+        else opacity = 0;
+
+        let blur;
+        if (t < 0.35) blur = mapClamped(t, -0.15, 0.35, 8, 0);
+        else if (t <= 0.65) blur = 0;
+        else blur = mapClamped(t, 0.65, 1.15, 0, 4);
+
+        const dir = i % 2 === 0 ? -1 : 1;
+        const exitProgress = mapClamped(t, 0.78, 1.15, 0, 1);
+        const tx = dir * exitProgress * window.innerWidth * 0.8;
+
+        panel.style.opacity = opacity;
+        panel.style.filter = blur > 0.05 ? `blur(${blur.toFixed(1)}px)` : 'none';
+        panel.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+        panel.style.zIndex = Math.round(scale * 100);
+      });
+    }
+
+    paint(0);
+
+    const st = ScrollTrigger.create({
+      trigger: stage,
+      start: 'top top',
+      end: () => `+=${Math.round(virtualLength * 85)}%`,
+      pin: true,
+      scrub: 0.5,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => paint(self.progress),
     });
 
-    return () => { tween.scrollTrigger && tween.scrollTrigger.kill(); tween.kill(); };
+    return () => {
+      st.kill();
+      panels.forEach((panel) => {
+        panel.style.opacity = '';
+        panel.style.filter = '';
+        panel.style.transform = '';
+        panel.style.zIndex = '';
+      });
+    };
   });
 
   /* ------------------------------------------------------------
