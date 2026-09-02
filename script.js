@@ -699,27 +699,31 @@
       panels.forEach((panel, i) => {
         const t = v - i * STAGGER;
 
-        if (t <= -0.2 || t >= 1.2) {
+        if (t <= -0.2 || t >= 1) {
           panel.style.opacity = 0;
           return;
         }
 
         const scale = Math.max(0.05, 0.22 + t * 1.4);
 
+        // a saída cabe inteira dentro de [0,1] agora — o último card
+        // do trilho nunca tem t > 1 (o scroll acaba exatamente ali),
+        // então antes, com a janela de saída indo até 1.15, ele nunca
+        // terminava de sumir e a seção de baixo demorava a "aparecer
+        // de vez" depois do último projeto
         let opacity;
         if (t < -0.15) opacity = 0;
         else if (t < 0.15) opacity = mapClamped(t, -0.15, 0.15, 0, 1);
         else if (t <= 0.85) opacity = 1;
-        else if (t < 1.15) opacity = mapClamped(t, 0.85, 1.15, 1, 0);
-        else opacity = 0;
+        else opacity = mapClamped(t, 0.85, 1, 1, 0);
 
         let blur;
         if (t < 0.35) blur = mapClamped(t, -0.15, 0.35, 8, 0);
         else if (t <= 0.65) blur = 0;
-        else blur = mapClamped(t, 0.65, 1.15, 0, 4);
+        else blur = mapClamped(t, 0.65, 1, 0, 4);
 
         const dir = i % 2 === 0 ? -1 : 1;
-        const exitProgress = mapClamped(t, 0.78, 1.15, 0, 1);
+        const exitProgress = mapClamped(t, 0.78, 1, 0, 1);
         const tx = dir * exitProgress * window.innerWidth * 0.8;
 
         panel.style.opacity = opacity;
