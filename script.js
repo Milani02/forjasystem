@@ -678,22 +678,71 @@
   });
 
   /* ------------------------------------------------------------
-     Projetos — sem pin no mobile/tablet, mas cada card ainda "puxa
-     o foco" ao entrar (leve blur + scale), ecoando o efeito de
-     profundidade do desktop sem o custo de um scroll-jack pinado.
+     Projetos — mobile/tablet: pin trava, um projeto por vez. A cada
+     rolada o próximo entra da direita pra esquerda enquanto o atual
+     sai pela esquerda — troca direta, nunca dois brigando no centro
+     por muito tempo. Desktop mantém o zoom em profundidade (acima).
   ------------------------------------------------------------ */
   mm.add('(max-width: 900px)', () => {
     if (reduceMotion) return () => {};
-    const casos = gsap.utils.toArray('.caso');
-    const tweens = casos.map((caso) => {
-      gsap.set(caso, { opacity: 0, y: 36, scale: 0.94, filter: 'blur(6px)' });
-      return gsap.to(caso, {
-        opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
-        duration: 0.8, ease: 'power3.out',
-        scrollTrigger: { trigger: caso, start: 'top 88%' },
+    const stage = document.querySelector('[data-depth-stage]');
+    const panels = gsap.utils.toArray('.caso');
+    if (!stage || !panels.length) return () => {};
+
+    stage.classList.add('projetos__depth-stage--pin');
+
+    const N = panels.length;
+    const STAGGER = 0.85; // <1 = uma pequena sobreposição no cruzamento
+    const virtualLength = 1 + (N - 1) * STAGGER;
+    const clamp01 = (v) => Math.max(0, Math.min(1, v));
+    const mapClamped = (t, inMin, inMax, outMin, outMax) =>
+      outMin + (outMax - outMin) * clamp01((t - inMin) / (inMax - inMin));
+
+    function paint(progress) {
+      const v = progress * virtualLength;
+      panels.forEach((panel, i) => {
+        const t = v - i * STAGGER;
+        let tx, opacity;
+        if (t <= -0.05 || t >= 1.05) {
+          opacity = 0;
+          tx = t < 0 ? 100 : -100;
+        } else if (t < 0.2) {
+          tx = mapClamped(t, 0, 0.2, 100, 0);
+          opacity = mapClamped(t, 0, 0.08, 0, 1);
+        } else if (t <= 0.8) {
+          tx = 0;
+          opacity = 1;
+        } else {
+          tx = mapClamped(t, 0.8, 1, 0, -100);
+          opacity = mapClamped(t, 0.92, 1, 1, 0);
+        }
+        panel.style.opacity = opacity;
+        panel.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(2)}%)`;
+        panel.style.zIndex = t >= -0.05 && t <= 1.05 ? 10 : 1;
       });
+    }
+
+    paint(0);
+
+    const st = ScrollTrigger.create({
+      trigger: stage,
+      start: 'top top',
+      end: () => `+=${Math.round(virtualLength * 110)}%`,
+      pin: true,
+      scrub: 0.5,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => paint(self.progress),
     });
-    return () => tweens.forEach((t) => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); });
+
+    return () => {
+      st.kill();
+      stage.classList.remove('projetos__depth-stage--pin');
+      panels.forEach((panel) => {
+        panel.style.opacity = '';
+        panel.style.transform = '';
+        panel.style.zIndex = '';
+      });
+    };
   });
 
   /* ------------------------------------------------------------
@@ -787,21 +836,15 @@
       return () => st.kill();
     });
 
-    // Mobile/tablet — bigorna sticky, cada painel martela ao entrar
+    // Mobile/tablet — sem bigorna, só um reveal simples por passo
     mm.add('(max-width: 900px)', () => {
       panels.forEach((p) => gsap.set(p, { opacity: 0, y: 28 }));
 
-      const triggers = panels.map((panel, i) => ScrollTrigger.create({
+      const triggers = panels.map((panel) => ScrollTrigger.create({
         trigger: panel,
-        start: 'top 68%',
-        onEnter: () => {
-          gsap.to(panel, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
-          strike(i + 1);
-        },
-        onEnterBack: () => {
-          gsap.to(panel, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
-          strike(i + 1);
-        },
+        start: 'top 72%',
+        onEnter: () => gsap.to(panel, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }),
+        onEnterBack: () => gsap.to(panel, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }),
         onLeaveBack: () => gsap.to(panel, { opacity: 0, y: 28, duration: 0.4 }),
       }));
 

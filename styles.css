@@ -739,6 +739,26 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   }
 }
 
+@media (max-width: 900px){
+  /* Pin trava: um projeto de cada vez, o próximo entra da direita
+     enquanto o atual sai pela esquerda (classe aplicada só quando o
+     JS ativa o pin — ver script.js; sem JS/reduced-motion a lista
+     cai pra pilha vertical normal, sem position:absolute nenhuma) */
+  .projetos__depth-stage--pin{
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .projetos__depth-stage--pin .caso{
+    position: absolute;
+    top: 50%; left: 50%;
+    width: min(90vw, 440px);
+    margin: 0; padding: 0;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+}
+
 /* ============================================================
    Tag pill — usado pelas caso__tags
    ============================================================ */
@@ -890,26 +910,14 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   margin-top: .6rem; color: var(--ink-dim); font-size: .98rem; line-height: 1.55; max-width: 42ch;
 }
 @media (max-width: 900px){
-  /* Sem pin de tela cheia no mobile/tablet (custa mais caro e é mais
-     sujeito a jank com a barra de endereço mostrando/escondendo) —
-     em vez disso, a bigorna fica "sticky" no topo enquanto os quatro
-     passos rolam por baixo, cada um disparando sua própria martelada
-     (ver storyForge() em script.js). */
+  /* Sem bigorna nem pin de tela cheia no mobile/tablet — só a lista
+     dos 4 passos, cada um entrando com um reveal simples ao rolar
+     até ele (ver storyForge() em script.js). */
   .story__pin{ height: auto; overflow: visible; }
   .story__stage{ text-align: left; align-items: flex-start; }
-  .story__visual{
-    width: min(170px, 46%);
-    margin: 0 0 1rem;
-    position: sticky;
-    /* folga extra: o martelo levantado desenha acima da própria
-       caixa do ícone (viewBox overflow:visible), então precisa de
-       mais respiro que o "top" normalmente pediria pra não encostar
-       no header fixo */
-    top: 7rem;
-    z-index: 2;
-  }
+  .story__visual{ display: none; }
   .story__panels{ min-height: 0; }
-  .story__panel{ position: relative; opacity: 1; align-items: flex-start; margin-bottom: 4rem; }
+  .story__panel{ position: relative; opacity: 1; align-items: flex-start; margin-bottom: 3rem; }
   .story__panel:last-child{ margin-bottom: 0; }
 }
 
