@@ -698,10 +698,20 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
    script.js (projetosDepthScroll). Mobile: pilha vertical normal,
    sem pin nem transform (ver media query abaixo).
    ============================================================ */
-.projetos{ position: relative; z-index: 3; padding: clamp(6rem, 14vh, 7rem) 0 clamp(4rem, 10vh, 6rem); }
+.projetos{ position: relative; z-index: 3; padding: clamp(6rem, 14vh, 7rem) 0 clamp(4rem, 10vh, 6rem); overflow: hidden; }
 .projetos__hint{ font-family: var(--font-mono); font-size: .78rem; color: var(--muted); }
 
-.projetos__depth-stage{ position: relative; }
+/* Chuva de código em tom de lava — fundo decorativo, sobe atrás dos
+   cards (mesmo racional do embers()/magma-splash: mostra mesmo com
+   prefers-reduced-motion, por não ter scroll-jack nem ser essencial) */
+.projetos__code-rain{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.projetos__depth-stage{ position: relative; z-index: 1; }
 
 .caso{
   display: flex; flex-direction: column; align-items: center; text-align: center;

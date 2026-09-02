@@ -245,6 +245,81 @@
   })();
 
   /* ============================================================
+     Projetos — chuva de código em tom de lava subindo atrás dos
+     cards. Mesmo racional do embers()/magma-splash: fundo puramente
+     decorativo, sem scroll-jack, então mostra mesmo com
+     prefers-reduced-motion.
+  ============================================================ */
+  (function projetosCodeRain() {
+    const canvas = document.querySelector('.projetos__code-rain');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const GLYPHS = ['{', '}', '<', '>', '/', '=', ';', '(', ')', '0', '1', '=>', '&&', '||', 'const', 'let', 'fn', '...'];
+    const monoFont = getComputedStyle(document.documentElement).getPropertyValue('--font-mono').trim() || 'monospace';
+    let w, h, glyphs, raf;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      w = canvas.width = rect.width;
+      h = canvas.height = rect.height;
+    }
+
+    function makeGlyph(spawnAtBottom) {
+      return {
+        x: Math.random() * w,
+        y: spawnAtBottom ? h + 20 + Math.random() * 80 : Math.random() * h,
+        vy: 0.3 + Math.random() * 0.55,
+        drift: Math.random() * 0.4 - 0.2,
+        phase: Math.random() * Math.PI * 2,
+        char: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+        size: 11 + Math.random() * 8,
+        hue: Math.random(), // 0 = ember fundo, 1 = amber/branco quente
+        alpha: 0.12 + Math.random() * 0.38,
+      };
+    }
+
+    function init() {
+      resize();
+      const count = w < 700 ? 24 : 44;
+      glyphs = Array.from({ length: count }, () => makeGlyph(false));
+    }
+
+    function colorFor(g) {
+      const r = 255;
+      const green = Math.round(70 + (200 - 70) * g.hue);
+      const blue = Math.round(20 + (150 - 20) * g.hue);
+      return `${r},${green},${blue}`;
+    }
+
+    function tick() {
+      ctx.clearRect(0, 0, w, h);
+      glyphs.forEach((g) => {
+        g.y -= g.vy;
+        g.phase += 0.008;
+        g.x += Math.sin(g.phase) * g.drift;
+        const fadeByHeight = Math.max(0, 1 - g.y / (h * 0.9));
+        const a = g.alpha * fadeByHeight;
+
+        ctx.font = `${g.size}px ${monoFont}`;
+        ctx.fillStyle = `rgba(${colorFor(g)},${a})`;
+        ctx.fillText(g.char, g.x, g.y);
+
+        if (g.y < -20 || a <= 0.004) Object.assign(g, makeGlyph(true));
+      });
+      raf = requestAnimationFrame(tick);
+    }
+
+    init();
+    raf = requestAnimationFrame(tick);
+    window.addEventListener('resize', () => resize(), { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelAnimationFrame(raf);
+      else raf = requestAnimationFrame(tick);
+    });
+  })();
+
+  /* ============================================================
      Circuito de fundo — pulsos de brasa viajando pelas linhas
      (a dualidade "Forja" + "System" do nome, sempre no ar)
   ============================================================ */
