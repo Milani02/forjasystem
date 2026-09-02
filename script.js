@@ -659,9 +659,9 @@
     const st = ScrollTrigger.create({
       trigger: stage,
       start: 'top top',
-      end: () => `+=${Math.round(virtualLength * 85)}%`,
+      end: () => `+=${Math.round(virtualLength * 150)}%`,
       pin: true,
-      scrub: 0.5,
+      scrub: 0.8,
       invalidateOnRefresh: true,
       onUpdate: (self) => paint(self.progress),
     });
@@ -678,17 +678,40 @@
   });
 
   /* ------------------------------------------------------------
-     Método — scrolling story pinado: martelo bate na bigorna,
-     fagulhas espalham a cada capítulo
+     Projetos — sem pin no mobile/tablet, mas cada card ainda "puxa
+     o foco" ao entrar (leve blur + scale), ecoando o efeito de
+     profundidade do desktop sem o custo de um scroll-jack pinado.
   ------------------------------------------------------------ */
-  mm.add('(min-width: 901px)', () => {
+  mm.add('(max-width: 900px)', () => {
+    if (reduceMotion) return () => {};
+    const casos = gsap.utils.toArray('.caso');
+    const tweens = casos.map((caso) => {
+      gsap.set(caso, { opacity: 0, y: 36, scale: 0.94, filter: 'blur(6px)' });
+      return gsap.to(caso, {
+        opacity: 1, y: 0, scale: 1, filter: 'blur(0px)',
+        duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: caso, start: 'top 88%' },
+      });
+    });
+    return () => tweens.forEach((t) => { t.scrollTrigger && t.scrollTrigger.kill(); t.kill(); });
+  });
+
+  /* ------------------------------------------------------------
+     Método — bigorna esquenta e o martelo bate a cada capítulo.
+     Desktop: pin de tela cheia, tudo esfregado pelo scroll. Mobile
+     e tablet: sem pin (mais pesado e sujeito a jank com a barra de
+     endereço) — a bigorna fica "sticky" no topo (ver CSS) enquanto
+     cada passo dispara sua própria martelada ao entrar em cena.
+     setHeat()/strike() são compartilhados pelas duas variantes.
+  ------------------------------------------------------------ */
+  (function storyForge() {
     const pin = document.querySelector('[data-story-pin]');
     const panels = gsap.utils.toArray('[data-story-panel]');
     const hammer = document.querySelector('[data-story-hammer]');
     const flash = document.querySelector('[data-story-flash]');
     const sparks = gsap.utils.toArray('[data-story-sparks] .story__spark');
     const visual = document.querySelector('.story__visual');
-    if (!pin || !panels.length) return () => {};
+    if (!pin || !panels.length) return;
 
     const STRIKE_X = 100;
     const STRIKE_Y = 78;
@@ -703,7 +726,6 @@
     }
 
     function strike(heatStage) {
-      if (reduceMotion) return;
       setHeat(heatStage);
       if (hammer) {
         gsap.timeline()
@@ -732,36 +754,60 @@
 
     if (reduceMotion) {
       panels.forEach((p) => gsap.set(p, { opacity: 1, position: 'relative' }));
-      return () => {};
+      return;
     }
 
-    gsap.set(panels.slice(1), { opacity: 0 });
-    let activeIndex = 0;
+    // Desktop — pin de tela cheia, 4 estágios esfregados pelo scroll
+    mm.add('(min-width: 901px)', () => {
+      gsap.set(panels.slice(1), { opacity: 0 });
+      let activeIndex = 0;
 
-    const st = ScrollTrigger.create({
-      trigger: pin,
-      start: 'top top',
-      end: () => `+=${window.innerHeight * 2.6}`,
-      pin: true,
-      scrub: 0.6,
-      invalidateOnRefresh: true,
-      onEnter: () => strike(1),
-      onUpdate: (self) => {
-        const progress = self.progress;
-        const segment = 1 / panels.length;
-        const idx = Math.min(panels.length - 1, Math.floor(progress / segment));
-        if (idx !== activeIndex) {
-          activeIndex = idx;
-          panels.forEach((p, i) => {
-            gsap.to(p, { opacity: i === activeIndex ? 1 : 0, duration: 0.4, overwrite: 'auto' });
-          });
-          strike(activeIndex + 1);
-        }
-      },
+      const st = ScrollTrigger.create({
+        trigger: pin,
+        start: 'top top',
+        end: () => `+=${window.innerHeight * 2.6}`,
+        pin: true,
+        scrub: 0.6,
+        invalidateOnRefresh: true,
+        onEnter: () => strike(1),
+        onUpdate: (self) => {
+          const progress = self.progress;
+          const segment = 1 / panels.length;
+          const idx = Math.min(panels.length - 1, Math.floor(progress / segment));
+          if (idx !== activeIndex) {
+            activeIndex = idx;
+            panels.forEach((p, i) => {
+              gsap.to(p, { opacity: i === activeIndex ? 1 : 0, duration: 0.4, overwrite: 'auto' });
+            });
+            strike(activeIndex + 1);
+          }
+        },
+      });
+
+      return () => st.kill();
     });
 
-    return () => st.kill();
-  });
+    // Mobile/tablet — bigorna sticky, cada painel martela ao entrar
+    mm.add('(max-width: 900px)', () => {
+      panels.forEach((p) => gsap.set(p, { opacity: 0, y: 28 }));
+
+      const triggers = panels.map((panel, i) => ScrollTrigger.create({
+        trigger: panel,
+        start: 'top 68%',
+        onEnter: () => {
+          gsap.to(panel, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
+          strike(i + 1);
+        },
+        onEnterBack: () => {
+          gsap.to(panel, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' });
+          strike(i + 1);
+        },
+        onLeaveBack: () => gsap.to(panel, { opacity: 0, y: 28, duration: 0.4 }),
+      }));
+
+      return () => triggers.forEach((t) => t.kill());
+    });
+  })();
 
   /* ------------------------------------------------------------
      Servico cards stagger-in
@@ -815,12 +861,19 @@
   const navToggle = document.querySelector('.nav-toggle');
   const mobileNav = document.querySelector('.mobile-nav');
   const fabEl = document.querySelector('.whatsapp-fab');
+  const mobileNavLinks = gsap.utils.toArray('.mobile-nav a');
+  if (!reduceMotion) gsap.set(mobileNavLinks, { opacity: 0, y: 24 });
   navToggle?.addEventListener('click', () => {
     const isOpen = mobileNav.classList.toggle('is-open');
     navToggle.setAttribute('aria-expanded', String(isOpen));
     navToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
     document.body.style.overflow = isOpen ? 'hidden' : '';
     if (fabEl) fabEl.style.visibility = isOpen ? 'hidden' : '';
+    if (isOpen && !reduceMotion) {
+      gsap.to(mobileNavLinks, { opacity: 1, y: 0, duration: 0.55, stagger: 0.06, ease: 'power3.out', delay: 0.15 });
+    } else if (!reduceMotion) {
+      gsap.set(mobileNavLinks, { opacity: 0, y: 24 });
+    }
   });
   mobileNav?.querySelectorAll('a').forEach((a) => {
     a.addEventListener('click', () => {

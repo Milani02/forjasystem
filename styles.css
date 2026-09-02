@@ -285,12 +285,31 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 
 .mobile-nav{
   position: fixed; inset: 0; z-index: 250; background: var(--bg);
+  overflow: hidden;
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   gap: 1.25rem; padding: var(--gutter);
+  counter-reset: navlink;
   transform: translateY(-100%); transition: transform .5s var(--ease);
 }
+.mobile-nav::before{
+  content: '';
+  position: absolute; z-index: 0; pointer-events: none;
+  top: 15%; left: 50%; transform: translateX(-50%);
+  width: min(480px, 140vw); height: min(480px, 140vw);
+  background: radial-gradient(circle, rgba(255,90,31,.16) 0%, rgba(255,90,31,0) 70%);
+  filter: blur(50px);
+}
 .mobile-nav.is-open{ transform: translateY(0); }
-.mobile-nav a{ font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: 2.4rem; color: var(--ink); }
+.mobile-nav a{
+  position: relative; z-index: 1;
+  display: flex; align-items: baseline; gap: .85rem;
+  counter-increment: navlink;
+  font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: 2.4rem; color: var(--ink);
+}
+.mobile-nav a::before{
+  content: counter(navlink, decimal-leading-zero);
+  font-family: var(--font-mono); font-weight: 400; font-size: 1rem; letter-spacing: .05em; color: var(--ember);
+}
 
 /* ============================================================
    Buttons
@@ -300,7 +319,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   padding: .85rem 1.6rem; border-radius: 999px;
   font-family: var(--font-mono); font-size: .8rem; letter-spacing: .03em;
   white-space: nowrap;
-  transition: background .35s var(--ease), color .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease);
+  transition: background .35s var(--ease), color .35s var(--ease), border-color .35s var(--ease), box-shadow .35s var(--ease), transform .15s var(--ease);
 }
 @property --angle{
   syntax: '<angle>';
@@ -575,7 +594,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   padding: clamp(2rem, 3vw, 2.75rem);
   transform-style: preserve-3d;
   will-change: transform;
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease);
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease);
 }
 .servico-card:hover{ border-color: var(--line-bright); box-shadow: 0 24px 60px -24px rgba(255,90,31,.25); }
 .servico-card::before, .depoimento-card::before{
@@ -702,7 +721,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   display: inline-block;
   font-family: var(--font-mono); font-size: .7rem; color: var(--muted);
   border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem;
-  transition: border-color .3s var(--ease), color .3s var(--ease);
+  transition: border-color .3s var(--ease), color .3s var(--ease), transform .15s var(--ease);
 }
 
 .browser-frame{
@@ -729,7 +748,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   border-radius: 14px;
   padding: clamp(1.75rem, 2.4vw, 2.25rem);
   display: flex; flex-direction: column;
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease);
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease);
 }
 .depoimento-card:hover{ border-color: var(--line-bright); box-shadow: 0 20px 50px -24px rgba(255,90,31,.3); }
 .depoimento-card__mark{
@@ -846,11 +865,26 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   margin-top: .6rem; color: var(--ink-dim); font-size: .98rem; line-height: 1.55; max-width: 42ch;
 }
 @media (max-width: 900px){
-  .story__pin{ height: auto; }
+  /* Sem pin de tela cheia no mobile/tablet (custa mais caro e é mais
+     sujeito a jank com a barra de endereço mostrando/escondendo) —
+     em vez disso, a bigorna fica "sticky" no topo enquanto os quatro
+     passos rolam por baixo, cada um disparando sua própria martelada
+     (ver storyForge() em script.js). */
+  .story__pin{ height: auto; overflow: visible; }
   .story__stage{ text-align: left; align-items: flex-start; }
-  .story__visual{ width: min(190px, 55%); margin: 0 auto 1rem; }
+  .story__visual{
+    width: min(170px, 46%);
+    margin: 0 0 1rem;
+    position: sticky;
+    /* folga extra: o martelo levantado desenha acima da própria
+       caixa do ícone (viewBox overflow:visible), então precisa de
+       mais respiro que o "top" normalmente pediria pra não encostar
+       no header fixo */
+    top: 7rem;
+    z-index: 2;
+  }
   .story__panels{ min-height: 0; }
-  .story__panel{ position: relative; opacity: 1; align-items: flex-start; margin-bottom: 2.25rem; }
+  .story__panel{ position: relative; opacity: 1; align-items: flex-start; margin-bottom: 4rem; }
   .story__panel:last-child{ margin-bottom: 0; }
 }
 
@@ -957,6 +991,24 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 }
 .site-footer__contacts{ display: flex; gap: 1rem; flex-wrap: wrap; }
 .site-footer__contacts a:hover{ color: var(--ember-bright); }
+
+/* ============================================================
+   Toque/pressão — :active funciona em toque e mouse; é o único
+   feedback que quem não tem hover (celular/tablet) vai sentir
+   ============================================================ */
+.btn:active{ transform: scale(.96); }
+.servico-card:active{ transform: scale(.98); }
+.trust-card:active{ transform: scale(.98) translateY(0); }
+.depoimento-card:active{ transform: scale(.98); }
+.caso__visual a{ transition: transform .15s var(--ease); }
+.caso__visual a:active{ transform: scale(.97); }
+.tag-pill:active{ border-color: var(--ember); color: var(--ember-bright); transform: scale(.94); }
+.site-nav a, .mobile-nav a, .site-footer__nav a{ transition: color .3s var(--ease), opacity .15s var(--ease); }
+.site-nav a:active, .mobile-nav a:active, .site-footer__nav a:active{ opacity: .55; }
+.whatsapp-fab{ transition: transform .15s var(--ease); }
+.whatsapp-fab:active{ transform: scale(.9); }
+.nav-toggle{ transition: opacity .15s var(--ease); }
+.nav-toggle:active{ opacity: .55; }
 
 /* ============================================================
    Responsive
