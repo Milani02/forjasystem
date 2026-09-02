@@ -240,7 +240,6 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   display: flex; align-items: center; justify-content: center; gap: 2rem;
   padding: 1.1rem var(--gutter);
   background: linear-gradient(to bottom, rgba(6,5,4,.9), transparent);
-  backdrop-filter: blur(6px);
 }
 .brand{ display: flex; align-items: center; gap: .5rem; color: var(--ink); }
 .brand__mark{ width: 58px; height: 58px; flex-shrink: 0; display: block; object-fit: contain; }
@@ -289,7 +288,11 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
   gap: 1.25rem; padding: var(--gutter);
   counter-reset: navlink;
-  transform: translateY(-100%); transition: transform .5s var(--ease);
+  /* cortina: o painel não desliza, ele é "descoberto" de cima pra
+     baixo via clip-path — clip-path também recorta o hit-test, então
+     fechado (altura visível 0) já não recebe clique nenhum sozinho */
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path .6s cubic-bezier(.76,0,.24,1);
 }
 .mobile-nav::before{
   content: '';
@@ -299,7 +302,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   background: radial-gradient(circle, rgba(255,90,31,.16) 0%, rgba(255,90,31,0) 70%);
   filter: blur(50px);
 }
-.mobile-nav.is-open{ transform: translateY(0); }
+.mobile-nav.is-open{ clip-path: inset(0 0 0% 0); }
 .mobile-nav a{
   position: relative; z-index: 1;
   display: flex; align-items: baseline; gap: .85rem;
@@ -309,6 +312,28 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .mobile-nav a::before{
   content: counter(navlink, decimal-leading-zero);
   font-family: var(--font-mono); font-weight: 400; font-size: 1rem; letter-spacing: .05em; color: var(--ember);
+}
+/* Cada letra nasce numa máscara (mesma técnica do título do hero) e
+   sobe de baixo pra cima ao abrir o menu (ver script.js). A cor é
+   brasa de magma sempre viva: cada letra tem seu próprio delay
+   negativo aleatório, então elas nunca respiram em sincronia — como
+   pontos de calor diferentes numa mesma poça de lava. */
+.mobile-nav .link-word{ display: inline-block; }
+.mobile-nav .letter-mask{ display: inline-block; overflow: hidden; }
+.mobile-nav .letter-inner{
+  display: inline-block;
+  background: linear-gradient(160deg,
+    var(--ember-deep) 0%, var(--ember) 28%, var(--ember-bright) 52%,
+    var(--ember-white) 64%, var(--ember-mid) 80%, var(--ember-deep) 100%);
+  background-size: 280% 280%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: navLetterLive 3.4s ease-in-out infinite;
+}
+@keyframes navLetterLive{
+  0%, 100%{ background-position: 0% 30%; }
+  50%{ background-position: 100% 70%; }
 }
 
 /* ============================================================

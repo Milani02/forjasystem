@@ -856,23 +856,79 @@
   });
 
   /* ------------------------------------------------------------
-     Mobile nav toggle
+     Header — some ao rolar pra baixo, volta assim que o usuário
+     rola pra cima (em qualquer ponto da página, não só no hero).
+     Fica sempre visível pertinho do topo, pra não sumir e voltar
+     à toa por causa de um tremor de scroll de 2px.
+  ------------------------------------------------------------ */
+  (function headerAutoHide() {
+    const header = document.querySelector('.site-header');
+    if (!header || reduceMotion) return;
+    let lastY = window.scrollY;
+    let hidden = false;
+
+    window.addEventListener('scroll', () => {
+      const y = window.scrollY;
+      const goingDown = y > lastY;
+      if (goingDown && y > 140 && !hidden) {
+        hidden = true;
+        gsap.to(header, { y: -(header.offsetHeight + 24), duration: 0.4, ease: 'power2.inOut' });
+      } else if ((!goingDown || y <= 140) && hidden) {
+        hidden = false;
+        gsap.to(header, { y: 0, duration: 0.4, ease: 'power2.inOut' });
+      }
+      lastY = y;
+    }, { passive: true });
+  })();
+
+  /* ------------------------------------------------------------
+     Mobile nav toggle — cortina em clip-path (CSS) + letras que
+     sobem de baixo pra cima, com pequeno atraso entre um link e
+     outro. A brasa em cada letra já vive sozinha via CSS (delay
+     negativo aleatório setado abaixo), então só falta revelar.
   ------------------------------------------------------------ */
   const navToggle = document.querySelector('.nav-toggle');
   const mobileNav = document.querySelector('.mobile-nav');
   const fabEl = document.querySelector('.whatsapp-fab');
-  const mobileNavLinks = gsap.utils.toArray('.mobile-nav a');
-  if (!reduceMotion) gsap.set(mobileNavLinks, { opacity: 0, y: 24 });
+
+  function wrapLetters(el) {
+    const chars = Array.from(el.textContent);
+    el.innerHTML = `<span class="link-word">${chars.map((ch) => {
+      if (ch === ' ') return ' ';
+      const delay = (-Math.random() * 3.4).toFixed(2);
+      return `<span class="letter-mask"><span class="letter-inner" style="animation-delay:${delay}s">${ch}</span></span>`;
+    }).join('')}</span>`;
+    return Array.from(el.querySelectorAll('.letter-inner'));
+  }
+
+  const mobileNavLinkLetters = gsap.utils.toArray('.mobile-nav a').map(wrapLetters);
+  if (!reduceMotion) {
+    mobileNavLinkLetters.forEach((letters) => gsap.set(letters, { yPercent: 130, opacity: 0 }));
+  }
+
   navToggle?.addEventListener('click', () => {
     const isOpen = mobileNav.classList.toggle('is-open');
     navToggle.setAttribute('aria-expanded', String(isOpen));
     navToggle.setAttribute('aria-label', isOpen ? 'Fechar menu' : 'Abrir menu');
     document.body.style.overflow = isOpen ? 'hidden' : '';
     if (fabEl) fabEl.style.visibility = isOpen ? 'hidden' : '';
-    if (isOpen && !reduceMotion) {
-      gsap.to(mobileNavLinks, { opacity: 1, y: 0, duration: 0.55, stagger: 0.06, ease: 'power3.out', delay: 0.15 });
-    } else if (!reduceMotion) {
-      gsap.set(mobileNavLinks, { opacity: 0, y: 24 });
+
+    if (reduceMotion) return;
+
+    if (isOpen) {
+      // a cortina (clip-path, via CSS) já começou a abrir junto do
+      // clique; as letras entram um pouco depois, como se estivessem
+      // se "construindo" no espaço que a cortina acabou de revelar
+      const tl = gsap.timeline({ delay: 0.22 });
+      mobileNavLinkLetters.forEach((letters, i) => {
+        tl.to(letters, {
+          yPercent: 0, opacity: 1, duration: 0.6, stagger: 0.022, ease: 'power4.out',
+        }, i * 0.08);
+      });
+    } else {
+      mobileNavLinkLetters.forEach((letters) => {
+        gsap.to(letters, { yPercent: 130, opacity: 0, duration: 0.25, ease: 'power2.in', overwrite: true });
+      });
     }
   });
   mobileNav?.querySelectorAll('a').forEach((a) => {
@@ -881,6 +937,11 @@
       navToggle.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
       if (fabEl) fabEl.style.visibility = '';
+      if (!reduceMotion) {
+        mobileNavLinkLetters.forEach((letters) => {
+          gsap.to(letters, { yPercent: 130, opacity: 0, duration: 0.25, ease: 'power2.in', overwrite: true });
+        });
+      }
     });
   });
 
