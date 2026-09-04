@@ -3,17 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  try{
+    var stored = localStorage.getItem('forja-theme');
+    var theme = (stored === 'light' || stored === 'dark')
+      ? stored
+      : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    document.documentElement.setAttribute('data-theme', theme);
+  }catch(e){
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+</script>
 <title>Forja System: sistemas, sites e automações para o seu negócio</title>
 <meta name="description" content="A Forja System projeta e constrói o que roda por trás do seu negócio: sistemas internos, sites que convertem e automações com IA. Sob medida, para qualquer nicho.">
-<link rel="canonical" href="https://forjasystem.com.br/">
+<link rel="canonical" href="https://www.forjasystem.com.br/">
 <meta name="theme-color" content="#060504">
 <meta name="google-site-verification" content="8WpVcjqcSuhG_apaQvYvdJgtLEP9yo_u9vx2UwyRX0s">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Forja System: sistemas, sites e automações para o seu negócio">
 <meta property="og:description" content="Sistemas internos, sites que convertem e automações com IA, projetados e construídos sob medida para o seu negócio rodar sozinho.">
-<meta property="og:url" content="https://forjasystem.com.br/">
-<meta property="og:image" content="https://forjasystem.com.br/assets/brand/og-image.jpg">
+<meta property="og:url" content="https://www.forjasystem.com.br/">
+<meta property="og:image" content="https://www.forjasystem.com.br/assets/brand/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="pt_BR">
@@ -22,8 +35,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Forja System: sistemas, sites e automações para o seu negócio">
 <meta name="twitter:description" content="Sistemas internos, sites que convertem e automações com IA, projetados e construídos sob medida para o seu negócio rodar sozinho.">
-<meta name="twitter:image" content="https://forjasystem.com.br/assets/brand/og-image.jpg">
+<meta name="twitter:image" content="https://www.forjasystem.com.br/assets/brand/og-image.jpg">
 
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/brand/favicon-192.png">
@@ -40,9 +54,9 @@
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
   "name": "Forja System",
-  "url": "https://forjasystem.com.br",
-  "logo": "https://forjasystem.com.br/assets/brand/logo-forja-tile-512.png",
-  "image": "https://forjasystem.com.br/assets/brand/og-image.jpg",
+  "url": "https://www.forjasystem.com.br",
+  "logo": "https://www.forjasystem.com.br/assets/brand/logo-forja-tile-512.png",
+  "image": "https://www.forjasystem.com.br/assets/brand/og-image.jpg",
   "description": "Software house que projeta e constrói sistemas internos, sites que convertem e automações com IA sob medida.",
   "areaServed": {
     "@type": "Country",
@@ -152,6 +166,16 @@
     <a href="#metodo">Método</a>
     <a href="#contato">Contato</a>
   </nav>
+
+  <button class="theme-toggle" data-theme-toggle type="button" aria-label="Ativar tema claro">
+    <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4.5"/>
+      <path d="M12 2v2.5M12 19.5V22M4.22 4.22l1.77 1.77M18.01 18.01l1.77 1.77M2 12h2.5M19.5 12H22M4.22 19.78l1.77-1.77M18.01 5.99l1.77-1.77"/>
+    </svg>
+    <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/>
+    </svg>
+  </button>
 
   <a href="#contato" class="btn btn--ghost btn--small header-cta">Solicite orçamento</a>
 

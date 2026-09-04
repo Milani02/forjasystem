@@ -3,6 +3,7 @@
    ============================================================ */
 :root{
   --bg: #060504;
+  --bg-rgb: 6,5,4;
   --surface: #0F0C0A;
   --surface-2: #171310;
   --ink: #F6F1EA;
@@ -13,6 +14,7 @@
   --ember-mid: #FF8A3D;
   --ember-bright: #FFB35C;
   --ember-white: #FFE8CF;
+  --accent-ink: var(--ember);
   --spark: #8FE3FF;
   --line: rgba(246,241,234,0.10);
   --line-bright: rgba(246,241,234,0.20);
@@ -27,6 +29,25 @@
   --ease: cubic-bezier(.16,.84,.44,1);
 }
 
+/* Tema claro — mesmo forge, luz de dia: fundo em off-white (o
+   mesmo tom que era o --ink no escuro), tinta quase-preta, e o
+   ember/spark ajustados só onde precisavam de mais contraste pra
+   ler como texto (--accent-ink, --spark); como glow/fundo de botão
+   o laranja original já funciona em ambos os fundos. */
+[data-theme="light"]{
+  --bg: #F6F1EA;
+  --bg-rgb: 246,241,234;
+  --surface: #EFE7D9;
+  --surface-2: #E6DBC6;
+  --ink: #1C140D;
+  --ink-dim: #4A3C2E;
+  --muted: #675C4F;
+  --accent-ink: #A83609;
+  --spark: #0E7490;
+  --line: rgba(28,20,13,0.10);
+  --line-bright: rgba(28,20,13,0.20);
+}
+
 *,*::before,*::after{ box-sizing: border-box; }
 html{ background: var(--bg); scroll-behavior: auto; }
 body{
@@ -39,6 +60,7 @@ body{
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
   cursor: default;
+  transition: background-color .4s ease, color .4s ease;
 }
 img{ max-width: 100%; display: block; }
 a{ color: inherit; text-decoration: none; }
@@ -239,7 +261,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
   display: flex; align-items: center; justify-content: center; gap: 2rem;
   padding: 1.1rem var(--gutter);
-  background: linear-gradient(to bottom, rgba(6,5,4,.9), transparent);
+  background: linear-gradient(to bottom, rgba(var(--bg-rgb),.9), transparent);
 }
 .brand{ display: flex; align-items: center; gap: .5rem; color: var(--ink); }
 .brand__mark{ width: 58px; height: 58px; flex-shrink: 0; display: block; object-fit: contain; }
@@ -276,6 +298,28 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 
 .header-cta{ display: inline-flex; }
 
+.theme-toggle{
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line-bright);
+  color: var(--ink-dim);
+  transition: border-color .3s var(--ease), color .3s var(--ease), transform .15s var(--ease);
+}
+.theme-toggle:hover{ border-color: var(--ember); color: var(--ember-bright); }
+.theme-toggle:active{ transform: scale(.88); }
+.theme-toggle__icon{
+  position: absolute;
+  width: 17px; height: 17px;
+  stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+  transition: opacity .35s var(--ease), transform .45s var(--ease);
+}
+.theme-toggle__icon--sun{ opacity: 0; transform: rotate(-90deg) scale(.5); }
+.theme-toggle__icon--moon{ opacity: 1; transform: rotate(0deg) scale(1); }
+[data-theme="light"] .theme-toggle__icon--sun{ opacity: 1; transform: rotate(0deg) scale(1); }
+[data-theme="light"] .theme-toggle__icon--moon{ opacity: 0; transform: rotate(90deg) scale(.5); }
+
 .nav-toggle{ display: none; flex-direction: column; justify-content: center; gap: 5px; width: 32px; height: 32px; }
 .nav-toggle span{ display: block; height: 1.5px; background: var(--ink); transition: transform .3s var(--ease), opacity .3s var(--ease); }
 .nav-toggle[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
@@ -311,7 +355,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 }
 .mobile-nav a::before{
   content: counter(navlink, decimal-leading-zero);
-  font-family: var(--font-mono); font-weight: 400; font-size: 1rem; letter-spacing: .05em; color: var(--ember);
+  font-family: var(--font-mono); font-weight: 400; font-size: 1rem; letter-spacing: .05em; color: var(--accent-ink);
 }
 /* Cada letra nasce numa máscara (mesma técnica do título do hero) e
    sobe de baixo pra cima ao abrir o menu (ver script.js). A cor é
@@ -379,7 +423,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
    ============================================================ */
 .eyebrow{
   font-family: var(--font-mono); font-size: .78rem; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--ember); margin-bottom: 1.1rem;
+  text-transform: uppercase; color: var(--accent-ink); margin-bottom: 1.1rem;
 }
 .section-head{
   position: relative; z-index: 3;
@@ -419,8 +463,8 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
      folga de cor sólida que se funde sem costura com a seção seguinte,
      não importa o que esteja passando no vídeo naquele instante */
   background:
-    linear-gradient(180deg, transparent 40%, rgba(6,5,4,.9) 78%, var(--bg) 94%),
-    linear-gradient(90deg, var(--bg) 0%, rgba(6,5,4,.82) 40%, rgba(6,5,4,.3) 68%, transparent 100%);
+    linear-gradient(180deg, transparent 40%, rgba(var(--bg-rgb),.9) 78%, var(--bg) 94%),
+    linear-gradient(90deg, var(--bg) 0%, rgba(var(--bg-rgb),.82) 40%, rgba(var(--bg-rgb),.3) 68%, transparent 100%);
 }
 
 /* Respingos de magma — saltam em arcos, fundo decorativo contínuo */
@@ -506,7 +550,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   padding: clamp(5rem, 12vh, 7rem) var(--gutter) clamp(3rem, 6vh, 4rem);
   /* esmaece direto do vídeo do hero pro --bg sólido, sem faixa de
      corte nem imagem estática entre as seções */
-  background: linear-gradient(180deg, rgba(6,5,4,.6) 0%, var(--bg) 45%);
+  background: linear-gradient(180deg, rgba(var(--bg-rgb),.6) 0%, var(--bg) 45%);
 }
 .problema__inner{ max-width: 760px; margin: 0 auto; }
 .problema h2{
@@ -527,7 +571,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   width: 26px; height: 26px;
   display: flex; align-items: center; justify-content: center;
   border-radius: 50%; border: 1px solid var(--line-bright);
-  color: var(--ember); font-family: var(--font-mono); font-size: .75rem;
+  color: var(--accent-ink); font-family: var(--font-mono); font-size: .75rem;
   margin-top: .1rem;
 }
 .pain-item p{ color: var(--ink-dim); font-size: clamp(1rem, 1.6vw, 1.15rem); line-height: 1.55; }
@@ -555,7 +599,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   font-family: var(--font-display); font-weight: 800; text-transform: uppercase;
   font-size: clamp(2.6rem, 6vw, 4.2rem);
   line-height: .92; letter-spacing: -.01em;
-  color: var(--ember);
+  color: var(--accent-ink);
 }
 .manifesto__forge{
   font-family: var(--font-display);
@@ -566,7 +610,8 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   letter-spacing: .005em;
 }
 .manifesto__forge .word{
-  color: var(--muted);
+  --lit: 0;
+  color: color-mix(in srgb, var(--muted), var(--ink) calc(var(--lit) * 100%));
   transition: none;
 }
 
@@ -619,7 +664,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   padding: clamp(2rem, 3vw, 2.75rem);
   transform-style: preserve-3d;
   will-change: transform;
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease);
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease), background-color .4s var(--ease);
 }
 .servico-card:hover{ border-color: var(--line-bright); box-shadow: 0 24px 60px -24px rgba(255,90,31,.25); }
 .servico-card::before, .depoimento-card::before{
@@ -633,7 +678,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .servico-card:hover::before, .depoimento-card:hover::before{ opacity: 1; }
 .servico-card > *, .depoimento-card > *{ position: relative; z-index: 1; }
 .servico-card__tag{
-  font-family: var(--font-mono); font-size: .75rem; color: var(--ember);
+  font-family: var(--font-mono); font-size: .75rem; color: var(--accent-ink);
   letter-spacing: .08em; border: 1px solid var(--line-bright); border-radius: 999px;
   padding: .3rem .7rem; display: inline-block;
 }
@@ -673,7 +718,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: clamp(1.75rem, 2.4vw, 2.25rem);
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .4s var(--ease);
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .4s var(--ease), background-color .4s var(--ease);
 }
 .trust-card:hover{
   border-color: var(--line-bright);
@@ -681,7 +726,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   transform: translateY(-4px);
 }
 .trust-card__tag{
-  font-family: var(--font-mono); font-size: .68rem; color: var(--ember);
+  font-family: var(--font-mono); font-size: .68rem; color: var(--accent-ink);
   letter-spacing: .1em;
 }
 .trust-card h3{
@@ -726,7 +771,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .caso__visual a{ display: block; }
 .caso__info{ margin-top: 1.25rem; }
 
-.caso__tag{ font-family: var(--font-mono); font-size: .75rem; color: var(--ember); letter-spacing: .06em; }
+.caso__tag{ font-family: var(--font-mono); font-size: .75rem; color: var(--accent-ink); letter-spacing: .06em; }
 .caso__info h3{
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
   font-size: clamp(1.6rem, 2.4vw, 2.1rem);
@@ -804,12 +849,12 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   border-radius: 14px;
   padding: clamp(1.75rem, 2.4vw, 2.25rem);
   display: flex; flex-direction: column;
-  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease);
+  transition: border-color .4s var(--ease), box-shadow .4s var(--ease), transform .15s var(--ease), background-color .4s var(--ease);
 }
 .depoimento-card:hover{ border-color: var(--line-bright); box-shadow: 0 20px 50px -24px rgba(255,90,31,.3); }
 .depoimento-card__mark{
   font-family: var(--font-display); font-size: 3rem; line-height: 1;
-  color: var(--ember); opacity: .6;
+  color: var(--accent-ink); opacity: .6;
 }
 .depoimento-card p{
   margin-top: .5rem; color: var(--ink-dim); line-height: 1.65; font-size: .96rem; flex: 1;
@@ -910,7 +955,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 }
 .story__panel:first-child{ opacity: 1; position: relative; }
 .story__num{
-  font-family: var(--font-mono); font-size: .8rem; color: var(--ember); letter-spacing: .08em;
+  font-family: var(--font-mono); font-size: .8rem; color: var(--accent-ink); letter-spacing: .08em;
 }
 .story__panel h3{
   font-family: var(--font-display); font-weight: 700; text-transform: uppercase;

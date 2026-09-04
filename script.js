@@ -5,6 +5,33 @@
   gsap.registerPlugin(ScrollTrigger);
 
   /* ============================================================
+     Tema claro/escuro — o estado inicial já foi decidido por um
+     script inline no <head> (evita flash do tema errado antes do
+     CSS carregar); aqui só cuidamos do clique, do aria-label e de
+     lembrar a escolha da pessoa pra próxima visita.
+  ============================================================ */
+  (function themeToggle() {
+    const btn = document.querySelector('[data-theme-toggle]');
+    if (!btn) return;
+    const root = document.documentElement;
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    const THEME_COLOR = { dark: '#060504', light: '#F6F1EA' };
+
+    function reflect(theme) {
+      btn.setAttribute('aria-label', theme === 'light' ? 'Ativar tema escuro' : 'Ativar tema claro');
+      if (themeColorMeta) themeColorMeta.setAttribute('content', THEME_COLOR[theme]);
+    }
+    reflect(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+    btn.addEventListener('click', () => {
+      const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      reflect(next);
+      try { localStorage.setItem('forja-theme', next); } catch (e) {}
+    });
+  })();
+
+  /* ============================================================
      Preloader — "acendendo a forja" antes do hero. Progresso
      simulado por tempo (sensação de carregamento), mas só fecha
      de verdade quando window.load + fontes terminarem — o que
@@ -551,7 +578,7 @@
     const wordEls = el.querySelectorAll('.word');
 
     gsap.to(wordEls, {
-      color: 'var(--ember-white)',
+      '--lit': 1,
       stagger: 0.5,
       ease: 'none',
       scrollTrigger: {
