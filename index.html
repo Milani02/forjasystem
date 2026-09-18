@@ -106,12 +106,7 @@
 <body>
 
 <div class="preloader" data-preloader>
-  <div class="preloader__stage">
-    <img class="preloader__mark" src="assets/brand/logo-forja-mark.svg" alt="" width="48" height="48">
-    <span class="preloader__pct" data-preloader-pct>0%</span>
-    <p class="preloader__word">Acendendo a forja</p>
-    <div class="preloader__meter"><span class="preloader__meter-fill" data-preloader-fill></span></div>
-  </div>
+  <video class="preloader__video" src="assets/loading/carregamento-novo.mp4" muted loop autoplay playsinline preload="auto"></video>
   <span class="preloader__sr" role="status">Carregando o site.</span>
 </div>
 
@@ -366,139 +361,38 @@
     <div class="section-head">
       <p class="eyebrow" data-reveal>Projetos reais, em produção</p>
       <h2 data-reveal-lines>Não é mockup.<br>É o que já está no ar.</h2>
-      <p class="projetos__hint" data-reveal>Role pra ver os sete projetos ↓</p>
+      <p class="projetos__hint" data-reveal>Arraste ou role pra navegar →</p>
     </div>
 
-    <div class="projetos__depth-stage" data-depth-stage>
-
-      <!-- CASO 01 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/sac-biodinamica-tickets.webp" alt="Painel de tickets da Central de Atendimento, versão Biodinâmica" loading="lazy">
+    <div class="macbook-carousel" data-macbook-carousel>
+      <div class="macbook-carousel__frame">
+        <img class="macbook-carousel__body" src="assets/portfolio/macbook-mockup.png" alt="" aria-hidden="true" draggable="false">
+        <div class="macbook-carousel__screen" data-macbook-screen>
+          <div class="macbook-carousel__track" data-macbook-track>
+            <div class="macbook-carousel__slide"><video data-slot="prev" muted loop autoplay playsinline preload="auto"></video></div>
+            <div class="macbook-carousel__slide"><video data-slot="current" muted loop autoplay playsinline preload="auto"></video></div>
+            <div class="macbook-carousel__slide"><video data-slot="next" muted loop autoplay playsinline preload="auto"></video></div>
           </div>
         </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_01 / 07</span>
-          <h3>Central de Atendimento multi-marca</h3>
-          <p>Um único SAC construído uma vez, implantado pras três marcas do Grupo Biodinâmica — cada uma com fila e identidade próprias.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">Next.js</li><li class="tag-pill">Supabase</li><li class="tag-pill">Multi-tenant</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 02 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/portal-colaborador-dashboard.webp" alt="Dashboard do gestor no Portal do Colaborador, Grupo Biodinâmica" loading="lazy">
-          </div>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_02 / 07</span>
-          <h3>Portal do Colaborador</h3>
-          <p>Dashboards por perfil, aprovação de ocorrências em tempo real e relatórios automáticos — o que antes era planilha e e-mail.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">React</li><li class="tag-pill">Supabase</li><li class="tag-pill">Docker</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 03 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/bioplic-chatbot.webp" alt="Assistente virtual com IA integrado ao site institucional" loading="lazy">
-          </div>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_03 / 07</span>
-          <h3>Assistente virtual com IA</h3>
-          <p>Chatbot com IA generativa e busca semântica que responde 24h e escala pra um humano só quando precisa.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">Next.js</li><li class="tag-pill">n8n</li><li class="tag-pill">RAG</li><li class="tag-pill">GPT-4.1-mini</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 04 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/prestige-hero.webp" alt="Página inicial do site Prestige Real Estate" loading="lazy">
-          </div>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_04 / 07</span>
-          <h3>Prestige Real Estate</h3>
-          <p>Projeto autoral pro imobiliário de alto padrão: hero com slider, contadores animados e conteúdo 100% editável sem programador.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">React</li><li class="tag-pill">Framer Motion</li><li class="tag-pill">Vite</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 05 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/hub-biodinamica-painel.webp" alt="Hub de acesso do Grupo Biodinâmica, com modelo 3D interativo" loading="lazy">
-          </div>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_05 / 07</span>
-          <h3>Hub Grupo Biodinâmica</h3>
-          <p>Central única de acesso pras três marcas do grupo, com um modelo 3D interativo recebendo o colaborador na entrada.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">Next.js</li><li class="tag-pill">Spline 3D</li><li class="tag-pill">Framer Motion</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 06 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <div class="browser-frame">
-            <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-            <img src="assets/portfolio/ciosp-biodinamica-login.webp" alt="Tela de login do painel de controle Ciosp, Grupo Biodinâmica" loading="lazy">
-          </div>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_06 / 07</span>
-          <h3>Painel de controle Ciosp</h3>
-          <p>Painel de dados de acesso restrito, centralizando informação que hoje anda espalhada em planilha, com login e segurança próprios.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">React</li><li class="tag-pill">Vite</li><li class="tag-pill">Supabase</li>
-          </ul>
-        </div>
-      </article>
-
-      <!-- CASO 07 -->
-      <article class="caso" data-depth-panel>
-        <div class="caso__visual">
-          <a href="https://imoveisdossonhos.imb.br" target="_blank" rel="noopener">
-            <div class="browser-frame">
-              <div class="browser-frame__bar"><span></span><span></span><span></span></div>
-              <img src="assets/portfolio/imoveis-dos-sonhos-hero.webp" alt="Página inicial do site Imóveis dos Sonhos" loading="lazy">
-            </div>
-          </a>
-        </div>
-        <div class="caso__info">
-          <span class="caso__tag">CASO_07 / 07</span>
-          <h3>Imóveis dos Sonhos</h3>
-          <p>Site institucional pra imobiliária 100% digital em Londrina, Umuarama e Cafezal do Sul, com captação direta pelo WhatsApp.</p>
-          <ul class="caso__tags">
-            <li class="tag-pill">React</li><li class="tag-pill">Tailwind CSS</li><li class="tag-pill">Vite</li>
-          </ul>
-        </div>
-      </article>
-
+        <button class="macbook-carousel__arrow macbook-carousel__arrow--prev" data-macbook-arrow-prev type="button" aria-label="Projeto anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="macbook-carousel__arrow macbook-carousel__arrow--next" data-macbook-arrow-next type="button" aria-label="Próximo projeto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      <div class="macbook-carousel__label" data-macbook-label>
+        <p class="macbook-carousel__brand" data-macbook-brand></p>
+        <p class="macbook-carousel__desc" data-macbook-desc></p>
+      </div>
+      <div class="macbook-carousel__sources" hidden data-macbook-sources>
+        <div data-brand="Bioteca" data-desc="Plataforma de conteúdo educacional com acesso por assinatura." data-src="assets/portfolio-clips/bioteca-plataforma.mp4"></div>
+        <div data-brand="Imóveis dos Sonhos" data-desc="Site institucional pra imobiliária 100% digital, com captação direta pelo WhatsApp." data-src="assets/portfolio-clips/imoveis-dos-sonhos.mp4"></div>
+        <div data-brand="Painel Ciosp" data-desc="Painel de dados de acesso restrito do Grupo Biodinâmica, com login e segurança próprios." data-src="assets/portfolio-clips/painel-ciosp.mp4"></div>
+        <div data-brand="Alicerce" data-desc="Landing page e site institucional pra imobiliária Alicerce." data-src="assets/portfolio-clips/publi-comercial.mp4"></div>
+        <div data-brand="Central de Atendimento" data-desc="SAC multi-marca construído uma vez, implantado pras três marcas do grupo." data-src="assets/portfolio-clips/sac-generico.mp4"></div>
+        <div data-brand="Tech Week" data-desc="Cobertura de um evento de tecnologia, do palco à transmissão." data-src="assets/portfolio-clips/techweek.mp4"></div>
+      </div>
     </div>
   </section>
 
@@ -685,6 +579,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="assets/js/macbook-carousel.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

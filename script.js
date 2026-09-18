@@ -32,11 +32,11 @@
   })();
 
   /* ============================================================
-     Preloader — "acendendo a forja" antes do hero. Progresso
-     simulado por tempo (sensação de carregamento), mas só fecha
-     de verdade quando window.load + fontes terminarem — o que
-     demorar mais entre isso e um tempo mínimo. Dispara app:ready
-     pro resto do script saber que pode começar a entrada do hero.
+     Preloader — "acendendo a forja" antes do hero. Fica no ar por
+     um tempo mínimo (pra dar tempo do carrossel girar e mostrar os
+     projetos) e só fecha de verdade quando window.load + fontes
+     terminarem — o que demorar mais entre isso e o tempo mínimo.
+     Dispara app:ready pro resto do script começar a entrada do hero.
   ============================================================ */
   (function preloader() {
     const el = document.querySelector('[data-preloader]');
@@ -47,59 +47,23 @@
       return;
     }
 
-    const fillEl = el.querySelector('[data-preloader-fill]');
-    const pctEl = el.querySelector('[data-preloader-pct]');
-    const markEl = el.querySelector('.preloader__mark');
-
-    let shown = 0, target = 0, closing = false;
-
-    function setHeat(pct) {
-      const stage = pct > 85 ? 4 : pct > 60 ? 3 : pct > 30 ? 2 : 1;
-      markEl.className = 'preloader__mark preloader__mark--heat-' + stage;
-    }
-
-    function raf() {
-      if (closing) return;
-      shown += (target - shown) * 0.1 + 0.1;
-      if (shown > target) shown = target;
-      const val = Math.min(99, Math.round(shown));
-      fillEl.style.width = val + '%';
-      pctEl.textContent = val + '%';
-      setHeat(val);
-      requestAnimationFrame(raf);
-    }
-    requestAnimationFrame(raf);
-
-    const simTimer = setInterval(() => {
-      target = Math.min(90, target + 3 + Math.random() * 7);
-    }, 200);
-
     const loaded = new Promise((res) => {
       if (document.readyState === 'complete') return res();
       window.addEventListener('load', res, { once: true });
     });
     const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    const minTime = new Promise((res) => setTimeout(res, 1500));
+    const minTime = new Promise((res) => setTimeout(res, 6500));
 
     Promise.all([loaded, fontsReady, minTime]).then(() => {
-      clearInterval(simTimer);
-      closing = true;
-      shown = 100;
-      fillEl.style.width = '100%';
-      pctEl.textContent = '100%';
-      setHeat(100);
-
-      gsap.delayedCall(0.3, () => {
-        gsap.timeline({
-          onComplete: () => {
-            el.remove();
-            document.documentElement.classList.remove('is-loading');
-            window.dispatchEvent(new Event('app:ready'));
-          },
-        })
-          .to(el.querySelector('.preloader__stage'), { opacity: 0, y: -14, duration: 0.35, ease: 'power2.in' })
-          .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.65, ease: 'power4.inOut' }, '-=0.05');
-      });
+      gsap.timeline({
+        onComplete: () => {
+          el.remove();
+          document.documentElement.classList.remove('is-loading');
+          window.dispatchEvent(new Event('app:ready'));
+        },
+      })
+        .to(el.querySelector('.preloader__video'), { opacity: 0, duration: 0.35, ease: 'power2.in' })
+        .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.65, ease: 'power4.inOut' }, '-=0.05');
     });
   })();
 
@@ -694,162 +658,6 @@
   })();
 
   const mm = gsap.matchMedia();
-
-  /* ------------------------------------------------------------
-     Projetos — Z-axis depth scroll (desktop only): o scroll deixa
-     de mover X/Y e passa a mover profundidade. Cada card nasce
-     minúsculo e desfocado no centro, cresce em direção à "câmera"
-     (foco nítido no meio do trajeto) e sai pelas bordas laterais,
-     revelando o próximo logo atrás. STAGGER < 1 = janelas de cada
-     card se sobrepõem, então o próximo já cresce enquanto o
-     anterior ainda está saindo (sem buraco entre um e outro).
-  ------------------------------------------------------------ */
-  mm.add('(min-width: 901px)', () => {
-    const stage = document.querySelector('[data-depth-stage]');
-    const panels = gsap.utils.toArray('[data-depth-panel]');
-    if (!stage || !panels.length) return () => {};
-
-    if (reduceMotion) {
-      panels.forEach((p) => gsap.set(p, { opacity: 1, position: 'relative', top: 'auto', left: 'auto', transform: 'none', filter: 'none' }));
-      return () => {};
-    }
-
-    const N = panels.length;
-    const STAGGER = 0.62;
-    const virtualLength = 1 + (N - 1) * STAGGER;
-    const clamp01 = (v) => Math.max(0, Math.min(1, v));
-    const mapClamped = (t, inMin, inMax, outMin, outMax) =>
-      outMin + (outMax - outMin) * clamp01((t - inMin) / (inMax - inMin));
-
-    function paint(progress) {
-      const v = progress * virtualLength;
-      panels.forEach((panel, i) => {
-        const t = v - i * STAGGER;
-
-        if (t <= -0.2 || t >= 1) {
-          panel.style.opacity = 0;
-          return;
-        }
-
-        const scale = Math.max(0.05, 0.22 + t * 1.4);
-
-        // a saída cabe inteira dentro de [0,1] agora — o último card
-        // do trilho nunca tem t > 1 (o scroll acaba exatamente ali),
-        // então antes, com a janela de saída indo até 1.15, ele nunca
-        // terminava de sumir e a seção de baixo demorava a "aparecer
-        // de vez" depois do último projeto
-        let opacity;
-        if (t < -0.15) opacity = 0;
-        else if (t < 0.15) opacity = mapClamped(t, -0.15, 0.15, 0, 1);
-        else if (t <= 0.85) opacity = 1;
-        else opacity = mapClamped(t, 0.85, 1, 1, 0);
-
-        let blur;
-        if (t < 0.35) blur = mapClamped(t, -0.15, 0.35, 8, 0);
-        else if (t <= 0.65) blur = 0;
-        else blur = mapClamped(t, 0.65, 1, 0, 4);
-
-        const dir = i % 2 === 0 ? -1 : 1;
-        const exitProgress = mapClamped(t, 0.78, 1, 0, 1);
-        const tx = dir * exitProgress * window.innerWidth * 0.8;
-
-        panel.style.opacity = opacity;
-        panel.style.filter = blur > 0.05 ? `blur(${blur.toFixed(1)}px)` : 'none';
-        panel.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(1)}px) scale(${scale.toFixed(3)})`;
-        panel.style.zIndex = Math.round(scale * 100);
-      });
-    }
-
-    paint(0);
-
-    const st = ScrollTrigger.create({
-      trigger: stage,
-      start: 'top top',
-      end: () => `+=${Math.round(virtualLength * 150)}%`,
-      pin: true,
-      scrub: 0.8,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => paint(self.progress),
-    });
-
-    return () => {
-      st.kill();
-      panels.forEach((panel) => {
-        panel.style.opacity = '';
-        panel.style.filter = '';
-        panel.style.transform = '';
-        panel.style.zIndex = '';
-      });
-    };
-  });
-
-  /* ------------------------------------------------------------
-     Projetos — mobile/tablet: pin trava, um projeto por vez. A cada
-     rolada o próximo entra da direita pra esquerda enquanto o atual
-     sai pela esquerda — troca direta, nunca dois brigando no centro
-     por muito tempo. Desktop mantém o zoom em profundidade (acima).
-  ------------------------------------------------------------ */
-  mm.add('(max-width: 900px)', () => {
-    if (reduceMotion) return () => {};
-    const stage = document.querySelector('[data-depth-stage]');
-    const panels = gsap.utils.toArray('.caso');
-    if (!stage || !panels.length) return () => {};
-
-    stage.classList.add('projetos__depth-stage--pin');
-
-    const N = panels.length;
-    const STAGGER = 0.85; // <1 = uma pequena sobreposição no cruzamento
-    const virtualLength = 1 + (N - 1) * STAGGER;
-    const clamp01 = (v) => Math.max(0, Math.min(1, v));
-    const mapClamped = (t, inMin, inMax, outMin, outMax) =>
-      outMin + (outMax - outMin) * clamp01((t - inMin) / (inMax - inMin));
-
-    function paint(progress) {
-      const v = progress * virtualLength;
-      panels.forEach((panel, i) => {
-        const t = v - i * STAGGER;
-        let tx, opacity;
-        if (t <= -0.05 || t >= 1.05) {
-          opacity = 0;
-          tx = t < 0 ? 100 : -100;
-        } else if (t < 0.2) {
-          tx = mapClamped(t, 0, 0.2, 100, 0);
-          opacity = mapClamped(t, 0, 0.08, 0, 1);
-        } else if (t <= 0.8) {
-          tx = 0;
-          opacity = 1;
-        } else {
-          tx = mapClamped(t, 0.8, 1, 0, -100);
-          opacity = mapClamped(t, 0.92, 1, 1, 0);
-        }
-        panel.style.opacity = opacity;
-        panel.style.transform = `translate(-50%, -50%) translateX(${tx.toFixed(2)}%)`;
-        panel.style.zIndex = t >= -0.05 && t <= 1.05 ? 10 : 1;
-      });
-    }
-
-    paint(0);
-
-    const st = ScrollTrigger.create({
-      trigger: stage,
-      start: 'top top',
-      end: () => `+=${Math.round(virtualLength * 110)}%`,
-      pin: true,
-      scrub: 0.5,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => paint(self.progress),
-    });
-
-    return () => {
-      st.kill();
-      stage.classList.remove('projetos__depth-stage--pin');
-      panels.forEach((panel) => {
-        panel.style.opacity = '';
-        panel.style.transform = '';
-        panel.style.zIndex = '';
-      });
-    };
-  });
 
   /* ------------------------------------------------------------
      Método — bigorna esquenta e o martelo bate a cada capítulo.

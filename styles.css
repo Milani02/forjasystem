@@ -90,10 +90,10 @@ button{ font: inherit; color: inherit; background: none; border: none; cursor: p
 
 /* ============================================================
    Preloader — "acendendo a forja" antes de revelar o hero.
-   Progresso simulado (sensação de carregamento real) que só
-   fecha depois que a página termina de carregar de verdade
-   (ver preloader() em script.js). Some com um golpe: o texto
-   sai, e uma cortina (clip-path) fecha de baixo pra cima.
+   Fica no ar por um tempo mínimo (ver preloader() em script.js)
+   e só fecha de verdade depois que a página termina de carregar.
+   Some com um golpe: o texto sai, e uma cortina (clip-path) fecha
+   de baixo pra cima.
    ============================================================ */
 html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 
@@ -102,43 +102,23 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   display: flex; align-items: center; justify-content: center;
   background: var(--bg);
   clip-path: inset(0 0 0% 0);
+  overflow: hidden;
 }
-.preloader__stage{
-  display: flex; flex-direction: column; align-items: center; gap: .35rem;
-  width: min(260px, 70vw);
-  text-align: center;
+
+/* Vídeo de fundo cobrindo a tela toda — é o preloader inteiro agora,
+   sem texto/logo por cima. O laranja do vídeo já é praticamente o
+   mesmo matiz do --ember do site (~15°), só que no máximo de saturação
+   e cobrindo a tela toda — por isso parece mais forte do que os toques
+   de laranja usados no resto do site. Filtro aqui só ameniza
+   intensidade (satura menos, escurece um pouco), sem mudar o tom. */
+.preloader__video{
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(.7) brightness(.82) contrast(1.05);
 }
-.preloader__mark{
-  width: 44px; height: 44px; margin-bottom: .75rem;
-  filter: drop-shadow(0 0 0 rgba(255,90,31,0));
-  transition: filter .5s ease;
-}
-.preloader__mark--heat-1{ filter: drop-shadow(0 0 6px rgba(255,90,31,.25)); }
-.preloader__mark--heat-2{ filter: drop-shadow(0 0 10px rgba(255,90,31,.42)); }
-.preloader__mark--heat-3{ filter: drop-shadow(0 0 16px rgba(255,90,31,.58)); }
-.preloader__mark--heat-4{ filter: drop-shadow(0 0 24px rgba(255,138,61,.8)); }
-.preloader__pct{
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(2.6rem, 9vw, 4rem); line-height: 1;
-  background: linear-gradient(100deg, var(--ember) 10%, var(--ember-mid) 40%, var(--ember-bright) 60%, var(--ember) 90%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text; background-clip: text; color: transparent;
-  font-variant-numeric: tabular-nums;
-}
-.preloader__word{
-  margin-top: .35rem;
-  font-family: var(--font-mono); font-size: .75rem; letter-spacing: .12em;
-  text-transform: uppercase; color: var(--muted);
-}
-.preloader__meter{
-  margin-top: 1rem; width: 100%; height: 2px;
-  background: var(--line); border-radius: 999px; overflow: hidden;
-}
-.preloader__meter-fill{
-  display: block; height: 100%; width: 0%;
-  background: linear-gradient(90deg, var(--ember-deep), var(--ember), var(--ember-bright));
-  box-shadow: 0 0 10px rgba(255,90,31,.6);
-}
+
 .preloader__sr{
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
@@ -757,81 +737,118 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   pointer-events: none;
 }
 
-.projetos__depth-stage{ position: relative; z-index: 1; }
-
-.caso{
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-  max-width: 560px;
-  margin: 0 auto clamp(3.5rem, 9vh, 5rem);
-  padding: 0 var(--gutter);
-}
-.caso:last-child{ margin-bottom: 0; }
-
-.caso__visual{ width: 100%; }
-.caso__visual a{ display: block; }
-.caso__info{ margin-top: 1.25rem; }
-
-.caso__tag{ font-family: var(--font-mono); font-size: .75rem; color: var(--accent-ink); letter-spacing: .06em; }
-.caso__info h3{
-  font-family: var(--font-display); font-weight: 700; text-transform: uppercase;
-  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
-  margin-top: .5rem; line-height: 1.1;
-}
-.caso__info p{ margin-top: .6rem; color: var(--ink-dim); line-height: 1.6; font-size: .95rem; }
-.caso__tags{ display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-top: 1rem; }
-
-@media (min-width: 901px){
-  .projetos__depth-stage{
-    height: 100vh;
-    overflow: hidden;
-  }
-  .projetos__depth-stage .caso{
-    position: absolute;
-    top: 50%; left: 50%;
-    margin: 0; padding: 0;
-    width: min(520px, 42vw);
-    opacity: 0;
-    will-change: transform, opacity, filter;
-  }
-}
-
-@media (max-width: 900px){
-  /* Pin trava: um projeto de cada vez, o próximo entra da direita
-     enquanto o atual sai pela esquerda (classe aplicada só quando o
-     JS ativa o pin — ver script.js; sem JS/reduced-motion a lista
-     cai pra pilha vertical normal, sem position:absolute nenhuma) */
-  .projetos__depth-stage--pin{
-    position: relative;
-    height: 100vh;
-    overflow: hidden;
-  }
-  .projetos__depth-stage--pin .caso{
-    position: absolute;
-    top: 50%; left: 50%;
-    width: min(90vw, 440px);
-    margin: 0; padding: 0;
-    opacity: 0;
-    will-change: transform, opacity;
-  }
-}
-
 /* ============================================================
-   Tag pill — usado pelas caso__tags
+   Browser frame bar — usado pelo chat-mock da seção de contato
    ============================================================ */
-.tag-pill{
-  display: inline-block;
-  font-family: var(--font-mono); font-size: .7rem; color: var(--muted);
-  border: 1px solid var(--line); border-radius: 999px; padding: .3rem .7rem;
-  transition: border-color .3s var(--ease), color .3s var(--ease), transform .15s var(--ease);
-}
-
-.browser-frame{
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-  overflow: hidden; box-shadow: 0 30px 60px -20px rgba(0,0,0,.7);
-}
 .browser-frame__bar{ display: flex; gap: 6px; padding: .65rem .8rem; background: var(--surface-2); border-bottom: 1px solid var(--line); }
 .browser-frame__bar span{ width: 8px; height: 8px; border-radius: 50%; background: var(--line-bright); }
-.browser-frame img{ width: 100%; height: auto; display: block; }
+
+/* ============================================================
+   MacBook Carousel — mockup estático (nunca se mexe), com os
+   vídeos dos projetos passando DENTRO da tela do notebook. Arrasta
+   pro lado troca o vídeo em exibição (ver assets/js/macbook-carousel.js).
+   Área da tela medida a partir do PNG (assets/portfolio/macbook-mockup.png,
+   800×460): esquerda 11%, topo 5.87%, largura 77.75%, altura 83.9%.
+   ============================================================ */
+.macbook-carousel{
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter) clamp(3rem, 8vh, 5rem);
+}
+.macbook-carousel__frame{
+  position: relative;
+  width: min(880px, 94vw);
+  margin: 0 auto;
+}
+.macbook-carousel__body{
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+.macbook-carousel__screen{
+  position: absolute;
+  left: 11%;
+  top: 5.9%;
+  width: 77.75%;
+  height: 83.9%;
+  overflow: hidden;
+  background: #000;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.macbook-carousel__screen:active{ cursor: grabbing; }
+.macbook-carousel__track{
+  display: flex;
+  height: 100%;
+  /* largura e posição de cada tela (prévia nas bordas) calculadas em
+     px pelo JS — ver macbook-carousel.js — não dá pra fazer só com %
+     porque a faixa precisa saber a largura real da tela do notebook. */
+}
+.macbook-carousel__slide{
+  flex: none;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: opacity .1s linear;
+}
+.macbook-carousel__slide video{
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: contain; /* mostra o vídeo inteiro, sem cortar nada */
+  pointer-events: none;
+  background: #000;
+}
+/* Setas nas bordas da tela — só um sinal de "arraste pra ver mais",
+   com um balanço sutil pro lado que apontam pra chamar atenção sem
+   parecer botão de app. Clicar também navega, de bônus. */
+.macbook-carousel__arrow{
+  position: absolute;
+  top: 47.85%;
+  transform: translateY(-50%);
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .38);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  opacity: .7;
+  border: 1px solid rgba(255, 255, 255, .18);
+  transition: opacity .2s ease, background-color .2s ease;
+  z-index: 3;
+  animation: macbook-arrow-hint 1.8s ease-in-out infinite;
+}
+.macbook-carousel__arrow:hover{ opacity: 1; background: rgba(0, 0, 0, .58); }
+.macbook-carousel__arrow svg{ width: 18px; height: 18px; }
+.macbook-carousel__arrow--prev{ left: 13%; --hint-dir: -4px; }
+.macbook-carousel__arrow--next{ right: 13%; --hint-dir: 4px; }
+@keyframes macbook-arrow-hint{
+  0%, 100%{ transform: translateY(-50%) translateX(0); }
+  50%{ transform: translateY(-50%) translateX(var(--hint-dir, 0)); }
+}
+@media (prefers-reduced-motion: reduce){
+  .macbook-carousel__arrow{ animation: none; }
+}
+
+.macbook-carousel__label{
+  margin-top: 1.5rem;
+  text-align: center;
+}
+.macbook-carousel__brand{
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.15rem, 2.6vw, 1.6rem);
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  background: linear-gradient(180deg, var(--ember-bright), var(--ember) 60%, var(--ember-deep));
+  background-clip: text; -webkit-background-clip: text; color: transparent;
+}
+.macbook-carousel__desc{
+  margin-top: .35rem;
+  font-size: .85rem;
+  color: var(--ink-dim);
+}
 
 /* ============================================================
    Depoimentos
@@ -1089,9 +1106,6 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 .servico-card:active{ transform: scale(.98); }
 .trust-card:active{ transform: scale(.98) translateY(0); }
 .depoimento-card:active{ transform: scale(.98); }
-.caso__visual a{ transition: transform .15s var(--ease); }
-.caso__visual a:active{ transform: scale(.97); }
-.tag-pill:active{ border-color: var(--ember); color: var(--ember-bright); transform: scale(.94); }
 .site-nav a, .mobile-nav a, .site-footer__nav a{ transition: color .3s var(--ease), opacity .15s var(--ease); }
 .site-nav a:active, .mobile-nav a:active, .site-footer__nav a:active{ opacity: .55; }
 .whatsapp-fab{ transition: transform .15s var(--ease); }
