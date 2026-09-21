@@ -1,29 +1,27 @@
 /* ============================================================
    MacBook Carousel — mockup estático (não anima, não gira, não
-   distorce), com os vídeos dos projetos passando DENTRO da tela.
-   A tela do notebook mostra o vídeo atual ocupando a maior parte,
-   com uma prévia do anterior colada na borda esquerda e uma prévia
-   do próximo colada na borda direita. Arrastar desliza: o da
-   direita entra pro meio, o do meio vai pro lugar do anterior à
-   esquerda — a prévia É o próprio efeito de transição, não algo
-   separado.
+   distorce). Os vídeos anterior/próximo ficam SOLTOS do lado de fora
+   do notebook, em repouso. Arrastar (ou seta/scroll) anima os 3
+   juntos: o que está entrando desliza de fora pra dentro da tela, e o
+   atual desliza pra fora, pro lugar onde o que entrou descansava —
+   como um carrinho de slide físico.
 
-   Loop infinito com DOM mínimo: só existem 3 telas (anterior/
-   atual/próxima), nunca uma por vídeo. Ao completar o arraste, a
-   faixa reseta pro centro sem transição e o conteúdo das 3 telas é
-   realocado — como o reset acontece na mesma posição visual, é
-   imperceptível.
+   Não existem elementos fixos "fora"/"tela" — os 3 slots (prev/
+   current/next) são intercambiáveis: cada um é só um <div> com um
+   <video> dentro, e a cada troca as REFERÊNCIAS trocam de papel (o
+   DOM não se move), então nunca precisa recriar/recarregar um vídeo
+   que já estava carregado.
 ============================================================ */
 (() => {
   const root = document.querySelector('[data-macbook-carousel]');
   if (!root) return;
 
-  const screen = root.querySelector('[data-macbook-screen]');
-  const track = root.querySelector('[data-macbook-track]');
+  const frame = root.querySelector('.macbook-carousel__frame');
   const brandEl = root.querySelector('[data-macbook-brand]');
   const descEl = root.querySelector('[data-macbook-desc]');
   const sourcesEl = root.querySelector('[data-macbook-sources]');
-  if (!screen || !track || !sourcesEl) return;
+  const slotEls = root.querySelectorAll('.macbook-carousel__slot');
+  if (!frame || !sourcesEl || slotEls.length !== 3) return;
 
   const sources = Array.from(sourcesEl.children).map((el) => ({
     brand: el.dataset.brand || '',
@@ -33,14 +31,11 @@
   const count = sources.length;
   if (!count) return;
 
-  const slides = {
-    prev: track.querySelector('[data-slot="prev"]').parentElement,
-    current: track.querySelector('[data-slot="current"]').parentElement,
-    next: track.querySelector('[data-slot="next"]').parentElement,
-  };
+  let slots = {};
+  slotEls.forEach((el) => { slots[el.dataset.role] = el; });
 
-  function loadSlot(wrapper, i) {
-    const video = wrapper.querySelector('video');
+  function loadSlot(el, i) {
+    const video = el.querySelector('video');
     const data = sources[((i % count) + count) % count];
     if (video.src.indexOf(data.src) === -1) {
       video.src = data.src;
@@ -50,10 +45,10 @@
     return data;
   }
 
-  let index = 0; // vídeo mostrado agora, 0..count-1
-  loadSlot(slides.prev, index - 1);
-  const activeData = loadSlot(slides.current, index);
-  loadSlot(slides.next, index + 1);
+  let index = 0;
+  loadSlot(slots.prev, index - 1);
+  const activeData = loadSlot(slots.current, index);
+  loadSlot(slots.next, index + 1);
 
   function updateLabel(data) {
     brandEl.textContent = data.brand;
@@ -61,142 +56,172 @@
   }
   updateLabel(activeData);
 
-  const MAIN_RATIO = 0.74; // vídeo atual ocupa 74% da tela do notebook
-  const GAP = 10; // px entre as telas
+  function setZ() {
+    slots.current.style.zIndex = 2;
+    slots.prev.style.zIndex = 3;
+    slots.next.style.zIndex = 3;
+  }
+  setZ();
 
-  let screenWidth = 1;
-  let screenHeight = 1;
-  let slideWidth = 1;
-  let pitch = 1; // slideWidth + GAP — quanto avança pra trocar 1 vídeo
+  /* Área da tela medida a partir do PNG (assets/portfolio/macbook-mockup.png,
+     800×460): esquerda 11%, topo 5.9%, largura 77.75%, altura 83.9%. */
+  const SCREEN_LEFT = .11, SCREEN_TOP = .059, SCREEN_W = .7775, SCREEN_H = .839;
+  const SCREEN_RADIUS = 6;
+  const PEEK_RADIUS = 14;
+  const PEEK_W_RATIO = .4; // largura da prévia solta, relativa à tela
+  const PEEK_H_RATIO = .62;
+  const GAP = 16; // px entre o frame e a prévia solta
+
+  let screenGeom = null, prevRest = null, nextRest = null;
+  let dragRange = 1;
 
   function measure() {
-    const rect = screen.getBoundingClientRect();
-    screenWidth = Math.max(1, rect.width);
-    screenHeight = Math.max(1, rect.height);
-    slideWidth = screenWidth * MAIN_RATIO;
-    pitch = slideWidth + GAP;
-    [slides.prev, slides.current, slides.next].forEach((el) => {
-      el.style.width = `${slideWidth}px`;
-      el.style.height = `${screenHeight}px`;
-      el.style.marginRight = `${GAP}px`;
-    });
+    const rect = frame.getBoundingClientRect();
+    const fw = rect.width, fh = rect.height;
+    screenGeom = {
+      left: fw * SCREEN_LEFT, top: fh * SCREEN_TOP,
+      width: fw * SCREEN_W, height: fh * SCREEN_H,
+      radius: SCREEN_RADIUS,
+    };
+
+    // Só cabe prévia solta se sobrar espaço de verdade fora do frame
+    // (a seção corta com overflow:hidden) — mede a folga real até lá,
+    // não só um valor fixo, pra não estourar em telas menores.
+    const section = root.closest('.projetos') || root.parentElement || document.body;
+    const sectionRect = section.getBoundingClientRect();
+    const availLeft = Math.max(0, rect.left - sectionRect.left);
+    const availRight = Math.max(0, sectionRect.right - rect.right);
+    const avail = Math.min(availLeft, availRight);
+
+    const pw = Math.max(46, Math.min(screenGeom.width * PEEK_W_RATIO, avail - GAP - 6, 176));
+    const peekH = screenGeom.height * PEEK_H_RATIO;
+    const peekTop = screenGeom.top + (screenGeom.height - peekH) / 2;
+
+    prevRest = { left: -pw - GAP, top: peekTop, width: pw, height: peekH, radius: PEEK_RADIUS };
+    nextRest = { left: fw + GAP, top: peekTop, width: pw, height: peekH, radius: PEEK_RADIUS };
+    dragRange = Math.max(1, screenGeom.width);
   }
 
-  let current = 0; // posição de arraste em unidades de "slide", -1..1, 0 = repouso
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpGeom(a, b, t) {
+    return {
+      left: lerp(a.left, b.left, t),
+      top: lerp(a.top, b.top, t),
+      width: lerp(a.width, b.width, t),
+      height: lerp(a.height, b.height, t),
+      radius: lerp(a.radius, b.radius, t),
+    };
+  }
+  function setGeom(el, g) {
+    el.style.left = `${g.left}px`;
+    el.style.top = `${g.top}px`;
+    el.style.width = `${g.width}px`;
+    el.style.height = `${g.height}px`;
+    el.style.borderRadius = `${g.radius}px`;
+  }
+
+  function applyLayout(t) {
+    if (t >= 0) {
+      // arrastando pra direita: o "prev" entra na tela vindo de fora,
+      // à esquerda; o "current" sai pra fora, à direita.
+      setGeom(slots.prev, lerpGeom(prevRest, screenGeom, t));
+      setGeom(slots.next, nextRest);
+      setGeom(slots.current, lerpGeom(screenGeom, nextRest, t));
+    } else {
+      const u = -t;
+      setGeom(slots.next, lerpGeom(nextRest, screenGeom, u));
+      setGeom(slots.prev, prevRest);
+      setGeom(slots.current, lerpGeom(screenGeom, prevRest, u));
+    }
+  }
+
+  let current = 0; // -1..1, 0 = repouso (current na tela, prev/next fora)
   let target = 0;
   let dragging = false;
   let dragStartX = 0;
   let dragStartCurrent = 0;
 
-  function baseOffset() {
-    // centraliza a tela do meio (índice 1 dos 3) na tela do notebook
-    return screenWidth / 2 - (pitch + slideWidth / 2);
-  }
-
-  function applyLayout() {
-    const offset = baseOffset() - current * pitch;
-    track.style.transform = `translateX(${offset}px)`;
-
-    // A prévia nas bordas encolhe e escurece um pouco — reforça que
-    // está "chegando"/"saindo", não é só um corte reto de vídeo.
-    [
-      [slides.prev, 0],
-      [slides.current, 1],
-      [slides.next, 2],
-    ].forEach(([el, slotIndex]) => {
-      const dist = Math.min(1, Math.abs(slotIndex - 1 - current));
-      el.style.transform = `scale(${1 - dist * 0.1})`;
-      el.style.opacity = String(1 - dist * 0.45);
-    });
-  }
-
   function shift(direction) {
-    // direction = +1 (avançou pra próxima) ou -1 (voltou pra anterior)
-    index = ((index + direction) % count + count) % count;
-    if (direction > 0) {
-      const tmp = slides.prev;
-      slides.prev = slides.current;
-      slides.current = slides.next;
-      slides.next = tmp;
-      loadSlot(slides.next, index + 1);
+    // direction === 1  -> "prev" virou o vídeo atual (arrastou pra direita)
+    // direction === -1 -> "next" virou o vídeo atual (arrastou pra esquerda)
+    index = ((index + (direction === 1 ? -1 : 1)) % count + count) % count;
+    if (direction === 1) {
+      const tmp = slots.next;
+      slots.next = slots.current;
+      slots.current = slots.prev;
+      slots.prev = tmp;
+      loadSlot(slots.prev, index - 1);
     } else {
-      const tmp = slides.next;
-      slides.next = slides.current;
-      slides.current = slides.prev;
-      slides.prev = tmp;
-      loadSlot(slides.prev, index - 1);
+      const tmp = slots.prev;
+      slots.prev = slots.current;
+      slots.current = slots.next;
+      slots.next = tmp;
+      loadSlot(slots.next, index + 1);
     }
-    // Reordena os elementos no DOM na sequência prev/current/next —
-    // troca só a ORDEM (os mesmos 3 elementos), não recria vídeo nenhum.
-    track.appendChild(slides.prev);
-    track.appendChild(slides.current);
-    track.appendChild(slides.next);
+    setZ();
     updateLabel(sources[index]);
   }
 
-  screen.addEventListener('pointerdown', (e) => {
+  frame.addEventListener('pointerdown', (e) => {
     dragging = true;
     dragStartX = e.clientX;
     dragStartCurrent = current;
     measure();
-    screen.setPointerCapture(e.pointerId);
-    screen.style.cursor = 'grabbing';
+    frame.setPointerCapture(e.pointerId);
   });
 
-  screen.addEventListener('pointermove', (e) => {
+  frame.addEventListener('pointermove', (e) => {
     if (!dragging) return;
     const dx = e.clientX - dragStartX;
-    current = Math.max(-1, Math.min(1, dragStartCurrent - dx / pitch));
-    applyLayout();
+    current = Math.max(-1, Math.min(1, dragStartCurrent + dx / dragRange));
+    applyLayout(current);
   });
 
   function endDrag(e) {
     if (!dragging) return;
     dragging = false;
-    screen.style.cursor = 'grab';
     const dx = e.clientX - dragStartX;
-    const threshold = pitch * 0.3;
-    if (dx <= -threshold) target = 1;
-    else if (dx >= threshold) target = -1;
+    const threshold = dragRange * .28;
+    if (dx >= threshold) target = 1;
+    else if (dx <= -threshold) target = -1;
     else target = 0;
   }
-  screen.addEventListener('pointerup', endDrag);
-  screen.addEventListener('pointercancel', endDrag);
+  frame.addEventListener('pointerup', endDrag);
+  frame.addEventListener('pointercancel', endDrag);
 
   let wheelLock = false;
-  screen.addEventListener('wheel', (e) => {
+  frame.addEventListener('wheel', (e) => {
     if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     e.preventDefault();
     if (wheelLock || dragging) return;
     wheelLock = true;
-    target = e.deltaX > 0 ? 1 : -1;
+    target = e.deltaX > 0 ? -1 : 1;
     setTimeout(() => { wheelLock = false; }, 500);
   }, { passive: false });
 
   const arrowPrev = root.querySelector('[data-macbook-arrow-prev]');
   const arrowNext = root.querySelector('[data-macbook-arrow-next]');
-  if (arrowPrev) arrowPrev.addEventListener('click', () => { if (!dragging && target === 0) target = -1; });
-  if (arrowNext) arrowNext.addEventListener('click', () => { if (!dragging && target === 0) target = 1; });
+  if (arrowPrev) arrowPrev.addEventListener('click', () => { if (!dragging && target === 0) target = 1; });
+  if (arrowNext) arrowNext.addEventListener('click', () => { if (!dragging && target === 0) target = -1; });
 
-  window.addEventListener('resize', () => { measure(); applyLayout(); });
+  window.addEventListener('resize', () => { measure(); applyLayout(current); });
 
   function tick() {
     requestAnimationFrame(tick);
     if (dragging) return;
 
-    current += (target - current) * 0.2;
-    applyLayout();
+    current += (target - current) * .22;
+    applyLayout(current);
 
-    if (Math.abs(target) > 0.001 && Math.abs(current - target) < 0.01) {
-      const direction = target > 0 ? 1 : -1;
-      shift(direction);
-      current -= direction; // mesma posição visual, unidades recentradas
+    if (Math.abs(target) > .001 && Math.abs(current - target) < .01) {
+      shift(target);
+      current = 0;
       target = 0;
-      applyLayout();
+      applyLayout(0);
     }
   }
 
   measure();
-  applyLayout();
+  applyLayout(0);
   tick();
 })();

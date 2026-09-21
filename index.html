@@ -47,7 +47,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;600;700;800;900&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20260921p">
 
 <script type="application/ld+json">
 {
@@ -106,7 +106,29 @@
 <body>
 
 <div class="preloader" data-preloader>
-  <video class="preloader__video" src="assets/loading/carregamento-novo.mp4" muted loop autoplay playsinline preload="auto"></video>
+  <canvas class="preloader__dotgrid" data-preloader-dotgrid aria-hidden="true"></canvas>
+  <div class="preloader__glow" aria-hidden="true"></div>
+
+  <div class="preloader__stage">
+    <p class="preloader__morph" aria-hidden="true">
+      <span class="preloader__word-group">
+        <span class="preloader__brand-letter" data-delay=".40">F</span>
+        <span class="preloader__brand-letter" data-delay=".54">o</span>
+        <span class="preloader__brand-letter" data-delay=".68">r</span>
+        <span class="preloader__brand-letter" data-delay=".82">j</span>
+        <span class="preloader__brand-letter" data-delay=".96">a</span>
+      </span>
+      <span class="preloader__word-group preloader__word-group--b">
+        <span class="preloader__brand-letter" data-delay="3.35">S</span>
+        <span class="preloader__brand-letter" data-delay="3.44">y</span>
+        <span class="preloader__brand-letter" data-delay="3.53">s</span>
+        <span class="preloader__brand-letter" data-delay="3.62">t</span>
+        <span class="preloader__brand-letter" data-delay="3.71">e</span>
+        <span class="preloader__brand-letter" data-delay="3.80">m</span>
+      </span>
+    </p>
+  </div>
+
   <span class="preloader__sr" role="status">Carregando o site.</span>
 </div>
 
@@ -190,10 +212,8 @@
 
   <!-- HERO -->
   <section class="hero" id="topo">
-    <video class="hero__video" aria-hidden="true" autoplay muted loop playsinline>
-      <source src="assets/hero-idle/magma-hero.mp4" type="video/mp4">
-    </video>
-    <div class="hero__video-scrim" aria-hidden="true"></div>
+    <canvas class="hero__shader" data-hero-shader aria-hidden="true"></canvas>
+    <div class="hero__shader-scrim" aria-hidden="true"></div>
     <canvas class="hero__magma-splash" aria-hidden="true"></canvas>
 
     <div class="hero__inner">
@@ -366,14 +386,10 @@
 
     <div class="macbook-carousel" data-macbook-carousel>
       <div class="macbook-carousel__frame">
+        <div class="macbook-carousel__slot" data-role="prev"><video data-slot="prev" muted loop autoplay playsinline preload="auto"></video></div>
         <img class="macbook-carousel__body" src="assets/portfolio/macbook-mockup.png" alt="" aria-hidden="true" draggable="false">
-        <div class="macbook-carousel__screen" data-macbook-screen>
-          <div class="macbook-carousel__track" data-macbook-track>
-            <div class="macbook-carousel__slide"><video data-slot="prev" muted loop autoplay playsinline preload="auto"></video></div>
-            <div class="macbook-carousel__slide"><video data-slot="current" muted loop autoplay playsinline preload="auto"></video></div>
-            <div class="macbook-carousel__slide"><video data-slot="next" muted loop autoplay playsinline preload="auto"></video></div>
-          </div>
-        </div>
+        <div class="macbook-carousel__slot" data-role="current"><video data-slot="current" muted loop autoplay playsinline preload="auto"></video></div>
+        <div class="macbook-carousel__slot" data-role="next"><video data-slot="next" muted loop autoplay playsinline preload="auto"></video></div>
         <button class="macbook-carousel__arrow macbook-carousel__arrow--prev" data-macbook-arrow-prev type="button" aria-label="Projeto anterior">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
@@ -579,7 +595,10 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script src="assets/js/macbook-carousel.js"></script>
-<script src="script.js"></script>
+<script src="assets/js/hero-shader.js?v=20260921a"></script>
+<script src="assets/js/macbook-carousel.js?v=20260921a"></script>
+<script src="assets/js/preloader-dotgrid.js?v=20260921h"></script>
+<script src="assets/js/preloader-forge-text.js?v=20260921k"></script>
+<script src="script.js?v=20260921d"></script>
 </body>
 </html>

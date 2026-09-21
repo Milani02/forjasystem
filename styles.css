@@ -105,18 +105,139 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   overflow: hidden;
 }
 
-/* Vídeo de fundo cobrindo a tela toda — é o preloader inteiro agora,
-   sem texto/logo por cima. O laranja do vídeo já é praticamente o
-   mesmo matiz do --ember do site (~15°), só que no máximo de saturação
-   e cobrindo a tela toda — por isso parece mais forte do que os toques
-   de laranja usados no resto do site. Filtro aqui só ameniza
-   intensidade (satura menos, escurece um pouco), sem mudar o tom. */
-.preloader__video{
+/* Grade de pontinhos de fundo — fica atrás do glow e do texto,
+   na frente do preto puro do .preloader. */
+.preloader__dotgrid{
   position: absolute;
   inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  filter: saturate(.7) brightness(.82) contrast(1.05);
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Glow no topo — reconstruído a partir de uma referência de imagem
+   real (medi as cores pixel a pixel): não são camadas de círculo
+   borrado empilhadas, é UM gradiente radial só. O centro do círculo
+   fica bem abaixo da tela (~200vh) e o raio é grande (~150vh) — como
+   só vemos uma fatia pertinho do topo desse círculo gigante, ele lê
+   como uma curva suave de horizonte, não um círculo óbvio. Os stops
+   (linha branca fina → mergulho escuro → roxo → lavanda claro → corte
+   pro preto) vieram direto da amostragem da imagem de referência. */
+.preloader__glow{
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(circle 150vh at 50% 200vh,
+    transparent 0%, transparent 92%,
+    rgba(74,16,0,.85) 95%,
+    rgba(255,90,31,.95) 98.5%,
+    #fff 99.6%, #fff 100.15%,
+    transparent 100.4%, transparent 118%
+  );
+  opacity: 0;
+  transform: translateY(-6vh);
+  animation:
+    preloader-glow-enter 1.4s cubic-bezier(.16,1,.3,1) forwards,
+    preloader-glow-pulse 3.4s ease-in-out 1.4s infinite;
+}
+@keyframes preloader-glow-enter{
+  to{ opacity: 1; transform: translateY(0); }
+}
+/* Depois que entra, respira — brilha e escurece de leve, sem parar. */
+@keyframes preloader-glow-pulse{
+  0%, 100%{ opacity: 1; filter: brightness(1) saturate(1); }
+  50%{ opacity: .8; filter: brightness(1.28) saturate(1.15); }
+}
+
+/* "Forja System" se formando no centro, letra por letra, em gradiente
+   de magma — igual ao brilho do topo. Sem logo: só o texto, grande, é
+   o elemento central. */
+.preloader__stage{
+  position: relative;
+  z-index: 1;
+  transform: translateY(-18vh);
+  display: flex; flex-direction: column; align-items: center; gap: .75rem;
+  text-align: center;
+}
+/* "Forja" e "System" no mesmo lugar (grid de uma célula), construídas
+   devagar letra por letra. Responsabilidade dividida em duas camadas:
+   - cada LETRA só cuida de nascer (sobe + desfoca + escala), com seu
+     próprio atraso — é isso que dá o efeito de "sendo construída".
+   - cada GRUPO (a palavra inteira) só cuida de sumir depois de pronta,
+     num horário fixo, DEPOIS que a última letra já nasceu — como
+     opacidade de pai e filho se multiplicam, a palavra some inteira
+     de uma vez, mesmo com as letras tendo nascido em momentos
+     diferentes. Os dois grupos dividem os 7.2s do ciclo: Forja
+     constrói e segura nos primeiros ~46%, some, silêncio, e só nos
+     ~50% System começa a construir. */
+.preloader__morph{
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 7ch;
+  height: 1.2em;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 10vw, 5.5rem);
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+.preloader__word-group{
+  grid-area: 1 / 1;
+  display: flex;
+  animation: preloader-word-hide-a 7.2s ease-in-out infinite;
+}
+.preloader__word-group--b{
+  animation-name: preloader-word-hide-b;
+}
+/* A saída também borra e estica um pouco (não só desaparece) —
+   isso é o que faz ler como "morphing" pra palavra seguinte, em
+   vez de um corte seco de opacidade. */
+@keyframes preloader-word-hide-a{
+  0%, 39%{ opacity: 1; filter: blur(0); transform: scale(1); }
+  46%, 100%{ opacity: 0; filter: blur(14px); transform: scale(1.14); }
+}
+@keyframes preloader-word-hide-b{
+  0%, 86%{ opacity: 1; filter: blur(0); transform: scale(1); }
+  93%, 100%{ opacity: 0; filter: blur(14px); transform: scale(1.14); }
+}
+/* Letra "forjada": enquanto o JS troca por glifos aleatórios
+   (.is-scrambling) ela fica pequena e esbranquiçada, incandescente,
+   tremendo de leve. Ao travar na letra certa (.is-revealed), dá uma
+   martelada — estica além do tamanho final e volta (overshoot) — e
+   o brilho branco-quente esfria rápido até sumir, deixando só o
+   gradiente ember de sempre. */
+.preloader__brand-letter{
+  display: inline-block;
+  background: linear-gradient(100deg, var(--ember) 10%, var(--ember-mid) 35%, var(--ember-bright) 50%, var(--ember-white) 62%, var(--ember) 90%);
+  background-size: 250% 100%;
+  background-clip: text; -webkit-background-clip: text; color: transparent;
+  animation: emberShift 6s ease-in-out infinite;
+  opacity: 0;
+  transform: scale(.7);
+  filter:
+    drop-shadow(0 0 0 rgba(255,232,207,0))
+    drop-shadow(0 0 0 rgba(255,90,31,0));
+  transition: opacity .12s linear;
+}
+.preloader__brand-letter.is-scrambling{
+  opacity: .85;
+  transform: scale(.86);
+  filter:
+    drop-shadow(0 0 10px rgba(255,232,207,.85))
+    drop-shadow(0 0 18px rgba(255,90,31,.55));
+}
+.preloader__brand-letter.is-revealed{
+  opacity: 1;
+  transform: scale(1);
+  filter:
+    drop-shadow(0 0 0 rgba(255,232,207,0))
+    drop-shadow(0 0 0 rgba(255,90,31,0));
+  transition:
+    opacity .1s linear,
+    transform .5s cubic-bezier(.34,1.7,.64,1),
+    filter .6s cubic-bezier(.16,1,.3,1);
 }
 
 .preloader__sr{
@@ -428,14 +549,18 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
 }
 .hero__inner{ max-width: 980px; }
 
-/* Vídeo de fundo do hero — roda em loop continuamente, sem scroll-jack */
-.hero__video{
+/* Fundo animado do hero — shader WebGL2 (nebulosa procedural em loop
+   contínuo, reage de leve ao mouse/touch), técnica original de
+   Matthias Hurrle (@atzedent), portada pra JS puro em
+   assets/js/hero-shader.js e retintada pro laranja da marca. */
+.hero__shader{
   position: absolute; inset: 0;
+  display: block;
   width: 100%; height: 100%;
-  object-fit: cover;
   z-index: -2;
+  touch-action: none;
 }
-.hero__video-scrim{
+.hero__shader-scrim{
   position: absolute; inset: 0;
   z-index: -1;
   /* fade horizontal (legibilidade do texto) + fade no rodapé — chega
@@ -767,33 +892,22 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   pointer-events: none;
   user-select: none;
 }
-.macbook-carousel__screen{
+/* Os 3 "slots" (prev/current/next) são idênticos e intercambiáveis —
+   posição, tamanho e raio de borda são 100% controlados via JS (px),
+   inclusive em repouso. O de "current" começa cobrindo a tela do
+   notebook; os outros dois começam soltos, fora do frame, do lado
+   de fora do MacBook — arrastar anima os 3 juntos: o que está entrando
+   desliza até a tela, o atual desliza pra fora, pro lugar onde o outro
+   descansava (ver assets/js/macbook-carousel.js). */
+.macbook-carousel__slot{
   position: absolute;
-  left: 11%;
-  top: 5.9%;
-  width: 77.75%;
-  height: 83.9%;
   overflow: hidden;
   background: #000;
   cursor: grab;
   touch-action: pan-y;
 }
-.macbook-carousel__screen:active{ cursor: grabbing; }
-.macbook-carousel__track{
-  display: flex;
-  height: 100%;
-  /* largura e posição de cada tela (prévia nas bordas) calculadas em
-     px pelo JS — ver macbook-carousel.js — não dá pra fazer só com %
-     porque a faixa precisa saber a largura real da tela do notebook. */
-}
-.macbook-carousel__slide{
-  flex: none;
-  height: 100%;
-  border-radius: 6px;
-  overflow: hidden;
-  transition: opacity .1s linear;
-}
-.macbook-carousel__slide video{
+.macbook-carousel__slot:active{ cursor: grabbing; }
+.macbook-carousel__slot video{
   display: block;
   width: 100%; height: 100%;
   object-fit: contain; /* mostra o vídeo inteiro, sem cortar nada */

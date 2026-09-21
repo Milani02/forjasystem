@@ -62,7 +62,7 @@
           window.dispatchEvent(new Event('app:ready'));
         },
       })
-        .to(el.querySelector('.preloader__video'), { opacity: 0, duration: 0.35, ease: 'power2.in' })
+        .to(el.querySelector('.preloader__stage'), { opacity: 0, y: -14, duration: 0.35, ease: 'power2.in' })
         .to(el, { clipPath: 'inset(0 0 100% 0)', duration: 0.65, ease: 'power4.inOut' }, '-=0.05');
     });
   })();
