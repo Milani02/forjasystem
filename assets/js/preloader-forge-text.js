@@ -5,6 +5,10 @@
    esfria pro laranja ember com uma martelada de escala. Ideia:
    o nome é "Forja", o texto devia parecer forjado, não só
    desenhado na tela.
+
+   Constrói uma vez só: "Forja" nasce e fica; "System" nasce logo
+   depois, do lado, completando o nome — não fica alternando/
+   sumindo pra sempre.
 ============================================================ */
 (() => {
   const letters = document.querySelectorAll('[data-preloader] .preloader__brand-letter');
@@ -12,9 +16,8 @@
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const CYCLE_MS = 7200;
-  const SCRAMBLE_MS = 380;
-  const STEP_MS = 45;
+  const SCRAMBLE_MS = 340;
+  const STEP_MS = 40;
 
   const jobs = Array.from(letters).map((el) => ({
     el,
@@ -27,7 +30,6 @@
   }
 
   function scramble(el, real) {
-    el.classList.remove('is-revealed');
     el.classList.add('is-scrambling');
     el.textContent = randomGlyph();
     const start = performance.now();
@@ -43,13 +45,7 @@
     }, STEP_MS);
   }
 
-  function runCycle() {
-    jobs.forEach(({ el, real, delayMs }) => {
-      el.classList.remove('is-revealed', 'is-scrambling');
-      setTimeout(() => scramble(el, real), delayMs);
-    });
-  }
-
-  runCycle();
-  setInterval(runCycle, CYCLE_MS);
+  jobs.forEach(({ el, real, delayMs }) => {
+    setTimeout(() => scramble(el, real), delayMs);
+  });
 })();

@@ -160,23 +160,18 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   display: flex; flex-direction: column; align-items: center; gap: .75rem;
   text-align: center;
 }
-/* "Forja" e "System" no mesmo lugar (grid de uma célula), construídas
-   devagar letra por letra. Responsabilidade dividida em duas camadas:
-   - cada LETRA só cuida de nascer (sobe + desfoca + escala), com seu
-     próprio atraso — é isso que dá o efeito de "sendo construída".
-   - cada GRUPO (a palavra inteira) só cuida de sumir depois de pronta,
-     num horário fixo, DEPOIS que a última letra já nasceu — como
-     opacidade de pai e filho se multiplicam, a palavra some inteira
-     de uma vez, mesmo com as letras tendo nascido em momentos
-     diferentes. Os dois grupos dividem os 7.2s do ciclo: Forja
-     constrói e segura nos primeiros ~46%, some, silêncio, e só nos
-     ~50% System começa a construir. */
+/* "Forja" nasce, fica — e "System" nasce logo depois, do lado, pra
+   formar o nome completo "Forja System" (não fica mais alternando
+   pra sempre: constrói uma vez só e segura). Cada LETRA cuida só de
+   nascer (scramble + martelada), com seu próprio atraso — ver
+   assets/js/preloader-forge-text.js. */
 .preloader__morph{
   position: relative;
-  display: grid;
-  place-items: center;
-  min-width: 7ch;
-  height: 1.2em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0 .32em;
   font-family: var(--font-display);
   font-weight: 800;
   font-size: clamp(2.75rem, 10vw, 5.5rem);
@@ -184,23 +179,7 @@ html.is-loading, html.is-loading body{ overflow: hidden; height: 100%; }
   text-transform: uppercase;
 }
 .preloader__word-group{
-  grid-area: 1 / 1;
   display: flex;
-  animation: preloader-word-hide-a 7.2s ease-in-out infinite;
-}
-.preloader__word-group--b{
-  animation-name: preloader-word-hide-b;
-}
-/* A saída também borra e estica um pouco (não só desaparece) —
-   isso é o que faz ler como "morphing" pra palavra seguinte, em
-   vez de um corte seco de opacidade. */
-@keyframes preloader-word-hide-a{
-  0%, 39%{ opacity: 1; filter: blur(0); transform: scale(1); }
-  46%, 100%{ opacity: 0; filter: blur(14px); transform: scale(1.14); }
-}
-@keyframes preloader-word-hide-b{
-  0%, 86%{ opacity: 1; filter: blur(0); transform: scale(1); }
-  93%, 100%{ opacity: 0; filter: blur(14px); transform: scale(1.14); }
 }
 /* Letra "forjada": enquanto o JS troca por glifos aleatórios
    (.is-scrambling) ela fica pequena e esbranquiçada, incandescente,

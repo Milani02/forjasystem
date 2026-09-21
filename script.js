@@ -52,7 +52,7 @@
       window.addEventListener('load', res, { once: true });
     });
     const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    const minTime = new Promise((res) => setTimeout(res, 6500));
+    const minTime = new Promise((res) => setTimeout(res, 2800));
 
     Promise.all([loaded, fontsReady, minTime]).then(() => {
       gsap.timeline({
